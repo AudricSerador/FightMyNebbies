@@ -1,27 +1,30 @@
 import discord 
 from discord.ext import commands 
+import random
+
+import sys
+import os
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from db import DatabaseInteractor
+
+interactor = DatabaseInteractor()
 
 class Nebbies(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
+        self.heads = [":grinning:", ":smiley:", ":smile:", ":grin:"]
     
     @commands.command(pass_context=True)
-    async def menu(self, ctx):
-        await ctx.send("Menus!",view=Select())
+    async def create(self, ctx):
+        embed = discord.Embed(color=discord.Color.purple(), title="Build-a-Nebby", description="How much tokens will you sacrifice?")
+        await ctx.send(embed=embed)
 
-class Select(discord.ui.Select):
-    def __init__(self):
-        options=[
-            discord.SelectOption(label="Option 1",emoji="👌",description="This is option 1!"),
-            discord.SelectOption(label="Option 2",emoji="✨",description="This is option 2!"),
-            discord.SelectOption(label="Option 3",emoji="🎭",description="This is option 3!")
-            ]
-        super().__init__(placeholder="Select an option",max_values=1,min_values=1,options=options)
+        def check(m):
+            return m.content.isdigit() and m.channel == ctx.channel
 
-class SelectView(discord.ui.View):
-    def __init__(self, *, timeout = 180):
-        super().__init__(timeout=timeout)
-        self.add_item(Select())
-        
+        msg = await self.bot.wait_for('message', check=check)
+        await ctx.send(msg.content)
+
+
 async def setup(bot):
     await bot.add_cog(Nebbies(bot))

@@ -6,7 +6,8 @@ class DatabaseInteractor:
             host='127.0.0.1',
             user='root',
             password='',
-            database='discordrpg'
+            database='discordrpg',
+            autocommit=True
         )
         
     # Check if user already exists in DB
@@ -56,6 +57,20 @@ class DatabaseInteractor:
         # Append monsters to user later
         return user
     
+    # Get user balance from Discord ID
+    def get_user_balance(self, discord_id):
+        cursor = self.db.cursor()
+
+        query = "SELECT Tokens FROM users WHERE USER_ID = %s"
+        values = (discord_id,)
+        cursor.execute(query, values)
+        
+        bal = cursor.fetchone()
+
+        cursor.close()
+
+        return int(bal[0])
+    
     # Returns dictionary of monsters, along with their stats, based on Discord ID
     def get_nebbies(self, discord_id):
         cursor = self.db.cursor(dictionary=True)
@@ -68,6 +83,37 @@ class DatabaseInteractor:
         
         cursor.close()
         return nebby
+    
+    # Add tokens.
+    def add_tokens(self, discord_id, tokens):
+        cursor = self.db.cursor()
+
+        query = "UPDATE users SET Tokens = Tokens + %s WHERE USER_ID = %s"
+        cursor.execute(query, (tokens, discord_id))
+        self.db.commit()
+
+        cursor.close()
+
+    # Subtract tokens.
+    def subtract_tokens(self, discord_id, tokens):
+        cursor = self.db.cursor()
+
+        query = "UPDATE users SET Tokens = Tokens - %s WHERE USER_ID = %s"
+        cursor.execute(query, (tokens, discord_id))
+        self.db.commit()
+
+        cursor.close()
+    
+    # Set tokens.
+    def set_tokens(self, discord_id, tokens):
+        cursor = self.db.cursor()
+
+        query = "UPDATE users SET Tokens = %s WHERE USER_ID = %s"
+        cursor.execute(query, (tokens, discord_id))
+        self.db.commit()
+
+        cursor.close()
+
         
         
 
