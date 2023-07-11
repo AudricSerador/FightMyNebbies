@@ -47,7 +47,7 @@ class Minigames(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
-    @commands.command(name="bigquestion")
+    @commands.command(name="bigquestion", pass_context=True)
     async def BigQuestion(self, ctx):
         if not interactor.does_user_exist(ctx.author.id):
             await ctx.send("User is not registered. Please register with !!setup.")
@@ -56,15 +56,10 @@ class Minigames(commands.Cog):
             await ctx.send(embed=embed, view=Buttons())
             result = random.randint(1, 4)
 
-            def check():
-                return True
-            
-            try:
-                interaction = await self.bot.wait_for("button-click", check=check, timeout=30.0)
-                print(1)
-            except asyncio.TimeoutError:
-                await ctx.send("TIMES UP!!!!!!!!!")
+            def check_button(i: discord.Interaction, button):
+                return i.author == ctx.author and i.message == Buttons
 
+            interaction, button = await self.bot.wait_for('button_click', check=check_button)
             if result == 1:
                 reward = int(interactor.get_user_balance(ctx.author.id) * 0.1)
                 await interaction.respond(embed=discord.Embed(color=discord.Color.green(), title=":white_check_mark: CORRECT!!!!", description=f"You have won {reward} Tokens."))

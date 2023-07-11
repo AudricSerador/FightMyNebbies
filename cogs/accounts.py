@@ -5,6 +5,7 @@ import sys
 import os
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from db import DatabaseInteractor
+from cogs.nebbies import num_suffix
 
 interactor = DatabaseInteractor()
 
@@ -31,7 +32,7 @@ class Accounts(commands.Cog):
 
             embed = discord.Embed(color=discord.Color.purple(), title=f"{user.name}'s Stats")
             embed.set_thumbnail(url=user.avatar.url)
-            embed.add_field(name="Balance", value=f"{stats['Tokens']} ↁ", inline=True)
+            embed.add_field(name="Balance", value=f"{num_suffix(stats['Tokens'])} ↁ", inline=True)
             embed.add_field(name="Level", value=f"{stats['Level']}", inline=True)
             embed.add_field(name="Monster", value="Coming Soon", inline=False)
             embed.add_field(name="Wins", value=f"{stats['Wins']}", inline=True)

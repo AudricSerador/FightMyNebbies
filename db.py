@@ -32,11 +32,11 @@ class DatabaseInteractor:
         cursor.close()
     
     # Add monster to DB
-    def create_monster(self, monster_id, discord_id, name, atk, df, sp, intl):
+    def create_monster(self, monster_id, discord_id, name, atk, df, sp, intl, head, body):
         cursor = self.db.cursor()
 
-        query = "INSERT INTO monsters (ID, USER_ID, NAME, ATTACK, DEFENSE, SPEED, INTELLIGENCE) VALUES (%s, %s, %s, %s, %s, %s, %s)"
-        values = (monster_id, discord_id, name, atk, df, sp, intl)
+        query = "INSERT INTO monster (ID, USER_ID, NAME, ATTACK, DEFENSE, SPEED, INTELLIGENCE, HEAD, BODY) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)"
+        values = (monster_id, discord_id, name, atk, df, sp, intl, head, body)
         cursor.execute(query, values)
 
         self.db.commit()
@@ -72,14 +72,14 @@ class DatabaseInteractor:
         return int(bal[0])
     
     # Returns dictionary of monsters, along with their stats, based on Discord ID
-    def get_nebbies(self, discord_id):
-        cursor = self.db.cursor(dictionary=True)
+    def get_monsters(self, discord_id):
+        cursor = self.db.cursor(dictionary=True, buffered=True)
 
-        query = "SELECT * FROM monsters WHERE USER_ID = %s"
+        query = "SELECT * FROM monster WHERE USER_ID = %s"
         values = (discord_id,)
         cursor.execute(query, values)
 
-        nebby = cursor.fetchone()
+        nebby = cursor.fetchall()
         
         cursor.close()
         return nebby
