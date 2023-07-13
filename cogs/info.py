@@ -8,8 +8,9 @@ class Info(commands.Cog):
     # Color tier info
     @commands.command(pass_context=True)
     async def tier(self, ctx):
-       desc = """In this game your monsters will be classified as different colors depending on its power level.\n"""
-       embed = discord.Embed(title="Power Tier Colors", description=desc)
+       embed = discord.Embed(title="Power Tier Colors", description="In this game your monsters will be classified as different colors depending on its power level:")
+       embed.add_field(name="Power Range", value="0 - 1k\n1k - 10k\n10k - 100k\n100k - 1m\n1m - 100m\n100m - 1b\n1b - 100b\n100b - 1t\n1t - 1qd\n1qd - 1qn", inline=True)
+       embed.add_field(name="Color", value="Grey\nGreen\nBlue\nPurple\nOrange\nRed\nYellow\nPink\nWhite\nBlack", inline=True)
        await ctx.send(embed=embed)
     
 async def setup(bot):

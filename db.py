@@ -71,18 +71,29 @@ class DatabaseInteractor:
 
         return int(bal[0])
     
-    # Returns dictionary of monsters, along with their stats, based on Discord ID
+    # Returns lsit of monsters, along with their dictionary stats, based on Discord ID
     def get_monsters(self, discord_id):
         cursor = self.db.cursor(dictionary=True, buffered=True)
 
         query = "SELECT * FROM monster WHERE USER_ID = %s"
-        values = (discord_id,)
-        cursor.execute(query, values)
+        cursor.execute(query, (discord_id,))
 
         nebby = cursor.fetchall()
         
         cursor.close()
         return nebby
+    
+    # Returns a dictionary of stats of a specific monster, based on uuid
+    def get_monster_info(self, uuid):
+        cursor = self.db.cursor(dictionary=True)
+
+        query = "SELECT * FROM monster WHERE ID = %s"
+        cursor.execute(query, (uuid,))
+
+        monster = cursor.fetchone()
+        
+        cursor.close()
+        return monster
     
     # Add tokens.
     def add_tokens(self, discord_id, tokens):
@@ -113,6 +124,28 @@ class DatabaseInteractor:
         self.db.commit()
 
         cursor.close()
+
+    # Set user's selected monster by its UUID.
+    def set_selected_monster(self, discord_id, uuid):
+        cursor = self.db.cursor()
+
+        query = "UPDATE users SET Selected_Monster = %s WHERE USER_ID = %s"
+        cursor.execute(query, (uuid, discord_id))
+        self.db.commit()
+
+        cursor.close()
+    
+    # Get the user's current selected monster; returns its UUID.
+    def get_selected_monster(self, discord_id):
+        cursor = self.db.cursor()
+
+        query = "SELECT Selected_Monster FROM users WHERE USER_ID = %s"
+        cursor.execute(query, (discord_id,))
+
+        monster = cursor.fetchone()
+
+        cursor.close()
+        return monster[0]
 
         
         

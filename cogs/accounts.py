@@ -5,7 +5,7 @@ import sys
 import os
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from db import DatabaseInteractor
-from cogs.nebbies import num_suffix
+from cogs.nebbies import num_suffix, get_monster_body, num_suffix
 
 interactor = DatabaseInteractor()
 
@@ -29,14 +29,20 @@ class Accounts(commands.Cog):
             user = ctx.author
         if interactor.does_user_exist(user.id):
             stats = interactor.get_user(user.id)
+            if interactor.get_selected_monster(user.id) == "None":
+                displayMonster = "None"
+            else:
+                monster = interactor.get_monster_info(stats['Selected_Monster'])
+                displayMonster = f"{monster['Name']}\n{get_monster_body(monster['Head'], monster['Body'])}\n**TP:** {num_suffix(monster['Attack'] + monster['Defense'] + monster['Intelligence'] + monster['Speed'])}"
 
-            embed = discord.Embed(color=discord.Color.purple(), title=f"{user.name}'s Stats")
+            
+            embed = discord.Embed(color=discord.Color.purple(), title=f"{user.name}'s Stats:")
             embed.set_thumbnail(url=user.avatar.url)
-            embed.add_field(name="Balance", value=f"{num_suffix(stats['Tokens'])} ↁ", inline=True)
-            embed.add_field(name="Level", value=f"{stats['Level']}", inline=True)
-            embed.add_field(name="Monster", value="Coming Soon", inline=False)
-            embed.add_field(name="Wins", value=f"{stats['Wins']}", inline=True)
-            embed.add_field(name="Losses", value=f"{stats['Losses']}", inline=True)
+            embed.add_field(name="Balance:", value=f"{num_suffix(stats['Tokens'])} ↁ", inline=True)
+            embed.add_field(name="Level:", value=f"{stats['Level']}", inline=True)
+            embed.add_field(name="Monster:", value=f"{displayMonster}", inline=False)
+            embed.add_field(name="Wins:", value=f"{stats['Wins']}", inline=True)
+            embed.add_field(name="Losses:", value=f"{stats['Losses']}", inline=True)
             await ctx.send(embed=embed)
         elif user == None:
             await ctx.send("You have not registered. Please register with !!setup.")
