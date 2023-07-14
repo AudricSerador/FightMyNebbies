@@ -17,12 +17,18 @@ class Fun(commands.Cog):
     @commands.command()
     async def bruh(self, ctx):
         await ctx.send(random.choice(self.phrases)) 
+
+    # Rebound
+    @commands.command()
+    async def rebound(self, ctx, opponent:discord.Member=None):
+        await ctx.send(f"{ctx.author.display_name} and {opponent.display_name}") 
     
     # 8 ball
     @commands.command(name="8ball")
     async def _8ball(self, ctx):
         embed = discord.Embed(color=discord.Color.purple(), title=":8ball: 8ball says...", description=f"{random.choice(self.eightball)}")
         await ctx.send(embed=embed)
+    
 
 async def setup(bot):
     await bot.add_cog(Fun(bot))

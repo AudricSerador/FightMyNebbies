@@ -5,6 +5,11 @@ class Info(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
+    # Returns bot latency
+    @commands.command()
+    async def ping(self, ctx):
+        await ctx.send(':ping_pong: Pong! {0}ms'.format(round(self.bot.latency, 1)))
+
     # Color tier info
     @commands.command(pass_context=True)
     async def tier(self, ctx):

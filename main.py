@@ -13,7 +13,7 @@ TOKEN = os.getenv('DISCORD_TOKEN')
 
 # Bot init
 intents = discord.Intents.all()
-bot = commands.Bot(color=discord.Color.purple(), command_prefix="!!", intents=intents, status=discord.Status.online, activity=discord.Activity(type=discord.ActivityType.playing, name="with myself"))
+bot = commands.Bot(color=discord.Color.purple(), command_prefix="!!", intents=intents, status=discord.Status.online, activity=discord.Activity(type=discord.ActivityType.playing, name="!!help"))
 
 COGS = ("cogs.nebbies", "cogs.accounts", "cogs.dueling", "cogs.minigames", "cogs.fun", "cogs.admin", "cogs.info")
 
@@ -30,6 +30,12 @@ async def on_command_error(ctx, error):
         await ctx.send("Command still on cooldown. Please try again in `{:.2f}s`".format(error.retry_after))
     elif isinstance(error, commands.CommandNotFound):
         await ctx.send("Command not found. Use `!!help` for a list of valid commands.")
+    elif isinstance(error, commands.MissingPermissions):
+        await ctx.send(f"You can't use that command.")
+    elif isinstance(error, commands.MissingRequiredArgument):
+        await ctx.send(f"Your command has missing arguments. Type `!!help` for a list of commands.")
+    else:
+        await ctx.send(f"something went wrong lmao")
 
 bot.run(TOKEN)
 
