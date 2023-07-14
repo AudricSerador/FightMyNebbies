@@ -457,4 +457,4 @@ async def update_bank(user, change=0, mode="Wallet"):
     return bal
 
 
-client.run("Njk0ODY4MjE2OTQ1NzA1MDUw.XoR4dA.y5v0-4HAZjMg80yGUhcVYbs6cvQ")
+client.run("")
