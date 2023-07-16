@@ -28,35 +28,48 @@ def getRandomAnswer():
 class Buttons(discord.ui.View):
     def __init__(self, *, timeout=180, userID):
         self.userID = userID
+        super().__init__(timeout=timeout)   
         self.one.label = getRandomAnswer()
         self.two.label = getRandomAnswer()
         self.three.label = getRandomAnswer()
         self.four.label = getRandomAnswer()
-        super().__init__(timeout=timeout)   
+
+    async def interaction_check(self, interaction: discord.Interaction) -> bool:
+        if interaction.user.id != self.userID:
+            await interaction.response.send_message(
+                f"I DIDNT ASK YOU IDIOT",
+                ephemeral=True,
+            )
+            return False
+        return True
         
     @discord.ui.button(style=discord.ButtonStyle.success)
     async def one(self,interaction:discord.Interaction,button:discord.ui.Button):
         for child in self.children:
             child.disabled=True
         await interaction.response.edit_message(embed=questionRNG(self.userID), view=self)
+        self.clear_items()
 
     @discord.ui.button(style=discord.ButtonStyle.success)
     async def two(self,interaction:discord.Interaction,button:discord.ui.Button):
         for child in self.children:
             child.disabled=True
         await interaction.response.edit_message(embed=questionRNG(self.userID), view=self)
+        self.clear_items()
 
     @discord.ui.button(style=discord.ButtonStyle.success)
     async def three(self,interaction:discord.Interaction,button:discord.ui.Button):
         for child in self.children:
             child.disabled=True
         await interaction.response.edit_message(embed=questionRNG(self.userID), view=self)
+        self.clear_items()
     
     @discord.ui.button(style=discord.ButtonStyle.success)
     async def four(self,interaction:discord.Interaction,button:discord.ui.Button):
         for child in self.children:
             child.disabled=True
         await interaction.response.edit_message(embed=questionRNG(self.userID), view=self)
+        self.clear_items()
 
 class Minigames(commands.Cog):
     def __init__(self, bot):

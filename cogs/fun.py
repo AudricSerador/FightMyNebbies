@@ -18,10 +18,10 @@ class Fun(commands.Cog):
     async def bruh(self, ctx):
         await ctx.send(random.choice(self.phrases)) 
 
-    # Rebound
-    @commands.command()
-    async def rebound(self, ctx, opponent:discord.Member=None):
-        await ctx.send(f"{ctx.author.display_name} and {opponent.display_name}") 
+    # 1984
+    @commands.command(name="1984")
+    async def literally(self, ctx, opponent:discord.Member=None):
+        await ctx.send(f"literally 1984.") 
     
     # 8 ball
     @commands.command(name="8ball")

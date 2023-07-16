@@ -52,26 +52,22 @@ def list_embed(monsters: dict, name: str):
 
 # Tier colors for different ranges of monster power
 def monster_power_color(power):
-    if power < 1000 and power > 0:
-        return discord.Color.light_gray()
-    elif power < 10000:
-        return discord.Color.green()
-    elif power < 100000:
-        return discord.Color.blue()
-    elif power < 1000000:
-        return discord.Color.purple()
-    elif power < 100000000:
-        return discord.Color.orange()
-    elif power < 1000000000:
-        return discord.Color.red()
-    elif power < 100000000000:
-        return discord.Color.yellow()
-    elif power < 1000000000000:
-        return discord.Color.pink()
-    elif power < 1000000000000000:
-        return discord.Color.from_rgb(255, 255, 255)
-    elif power < 18446744073709551615:
-        return discord.Color.from_rgb(0, 0, 0)
+    colors = {
+        (0, 1000): discord.Color.light_gray(),
+        (1000, 10000): discord.Color.green(),
+        (10000, 100000): discord.Color.blue(),
+        (100000, 1000000): discord.Color.purple(),
+        (1000000, 100000000): discord.Color.orange(),
+        (100000000, 1000000000): discord.Color.red(),
+        (1000000000, 100000000000): discord.Color.yellow(),
+        (100000000000, 1000000000000): discord.Color.pink(),
+        (1000000000000, 1000000000000000): discord.Color.from_rgb(255, 255, 255),
+        (1000000000000000, 18446744073709551615): discord.Color.from_rgb(0, 0, 0)
+    }
+    
+    for range_, color in colors.items():
+        if range_[0] < power < range_[1]:
+            return color
     
 # Converts large numbers into their appropriate suffixes (k, M, B, etc.)
 def num_suffix(num: int):
@@ -145,8 +141,10 @@ class navButtons(discord.ui.View):
 class Nebbies(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
-        self.heads = [":grinning:", ":smiley:", ":smile:", ":grin:", ":laughing:", ":star_struck:", ":sweat_smile:", ":joy:", ":rofl:", ":relaxed:", ":blush:", ":innocent:", ":slight_smile:", ":upside_down:", ":wink:", ":relieved:", ":heart_eyes:", ":kissing_heart:" ":kissing:", ":kissing_smiling_eyes:", ":kissing_closed_eyes:", ":yum:", ":zany_face:", ":stuck_out_tongue_winking_eye:", ":stuck_out_tongue_closed_eyes:", ":stuck_out_tongue:", ":money_mouth:", ":hugging:", ":nerd:", ":sunglasses:", ":clown:", ":cowboy:", ":smirk:", ":unamused:", ":disappointed:", ":pensive:", ":worried:", ":confused:", ":slight_frown:", ":frowning2:", ":persevere:", ":confounded:", ":tired_face:", ":weary:", ":triumph:", ":angry:", ":rage:", ":face_with_symbols_over_mouth:", ":no_mouth:", ":neutral_face:", ":expressionless:", ":hushed:", ":frowning:", ":anguished:", ":open_mouth:", ":astonished:", ":dizzy_face:", ":exploding_head:", ":flushed:", ":scream:", ":fearful:"]
-        self.bodies = [":koko:", ":sa:", ":u6708:", ":u6709:", ":ideograph_advantage:", ":u5272:", ":u7981:", ":accept:", ":u7533:", ":u5408:", ":u7a7a:", ":congratulations:", ":secret:", ":u55b6:", ":u6e80:", ":red_circle:", ":orange_circle:", ":yellow_circle:", ":green_circle:", ":blue_circle:", ":purple_circle:", ":brown_circle:", ":red_square:", ":orange_square:", ":yellow_square:", ":green_square:", ":blue_square:", ":purple_square:", ":brown_square:", ":black_square_button:"]
+        self.heads = [":grinning:", ":smiley:", ":smile:", ":grin:", ":laughing:", ":star_struck:", ":sweat_smile:", ":joy:", ":rofl:", ":relieved:", ":blush:", ":innocent:", ":slight_smile:", ":upside_down:", ":wink:", ":relieved:", ":heart_eyes:", ":kissing_heart:", ":kissing:", ":kissing_smiling_eyes:", ":kissing_closed_eyes:", ":yum:", ":zany_face:", ":stuck_out_tongue_winking_eye:", ":stuck_out_tongue_closed_eyes:", ":stuck_out_tongue:", ":money_mouth:", ":hugging:", ":nerd:", ":sunglasses:", ":clown:", ":cowboy:", ":smirk:", ":unamused:", ":disappointed:", ":pensive:", ":worried:", ":confused:", ":slight_frown:", ":frowning2:", ":persevere:", ":confounded:", ":tired_face:", ":weary:", ":triumph:", ":rage:", ":face_with_symbols_over_mouth:", ":woman_gesturing_no:", ":no_mouth:", ":neutral_face:", ":expressionless:", ":hushed:", ":frowning:", ":anguished:", ":open_mouth:", ":dizzy_face:", ":exploding_head:", ":flushed:", ":scream:", ":fearful:", ':baby:', ':child:', ':boy:', ':girl:', ':adult:', ':man:', ':woman:', ':bearded_person:', ':bearded_person:', ':bearded_person:', ':adult:', ':man_red_haired:', ':woman_red_haired:', ':adult:', ':man_curly_haired:', ':woman_curly_haired:', ':adult:', ':man_white_haired:', ':woman_white_haired:', ':adult:', ':man_bald:', ':woman_bald:', ':blond_haired_person:', ':blond_haired_man:', ':blond_haired_woman:', ':older_adult:', ':older_man:', ':older_woman:', ':smiling_imp:', ':imp:', ':skull:', ':skull_crossbones:', ':poop:', ':clown:', ':japanese_ogre:', ':japanese_goblin:', ':ghost:', ':alien:', ':space_invader:', ':robot:', ':smiley_cat:', ':smile_cat:', ':joy_cat:', ':heart_eyes_cat:', ':smirk_cat:', ':kissing_cat:', ':scream_cat:', ':crying_cat_face:', ':pouting_cat:', ':monkey_face:',  ':gorilla:', ':dog:', ':wolf:', ':fox:', ':raccoon:', ':cat:', ':lion_face:', ':tiger:', ':cow:', ':pig:', ':boar:', ':mouse:', ':hamster:', ':rabbit:', ':bear:', ':polar_bear:', ':koala:', ':panda_face:', ':chicken:', ':eagle:', ':egg:', ':frog:', ':new_moon_with_face:', ':full_moon_with_face:', ':sun_with_face:', ':jack_o_lantern:']
+
+        self.bodies = [":koko:", ":sa:", ":u6708:", ":u6709:", ":u6307:", ":ideograph_advantage:", ":u5272:", ":accept:", ":u7981:", ":u5408:", ":u7a7a:", ":u55b6:", ":u6e80:", ":u7121:", ":u6708:", ":u7533:", ":red_circle:", ":orange_circle:", ":yellow_circle:", ":green_circle:", ":blue_circle:", ":purple_circle:", ":brown_circle:", ":black_circle", ':soccer:', ':baseball:', ':softball:', ':basketball:', ':volleyball:', ':heart:', ':orange_heart:', ':yellow_heart:', ':green_heart:', ':blue_heart:', ':purple_heart:', ':brown_heart:', ':black_heart:', ':white_heart:', ':heart_on_fire:', ':mending_heart:', ':new_moon:', ':first_quarter_moon:', ':waxing_gibbous_moon:', ':waning_gibbous_moon:', ':last_quarter_moon:', ':lab_coat:', ':safety_vest:', ':necktie:', ':shirt:', ':dress:', ':one_piece_swimsuit:', ':bikini:', ':womans_clothes:', ':musical_keyboard:', ':atom:', ':infinity:', ':peace:', ':name_badge:', ':o:', ':eight_spoked_asterisk:', ':radioactive:', ':biohazard:', ':8ball:', ':cookie:', ':rice_cracker:', ':rice_ball:', ':apple:', ':green_apple:', ':radio_button:', ':white_square_button:', ':peach:', ':tomato:', ':star2:', ':chestnut:', ':gem:', ':red_square:', ':orange_square:', ':yellow_square:', ':green_square:', ':blue_square:', ':purple_square:', ':brown_square:']
+
         
     # Process to create a monster
     @commands.command(pass_context=True)
@@ -159,17 +157,24 @@ class Nebbies(commands.Cog):
 
             def check(m):
                 checkNum = suffix_num(m.content)
-                return checkNum != None and m.channel == ctx.channel and checkNum > 0 and checkNum <= interactor.get_user_balance(ctx.author.id) and m.author == ctx.author
+                return checkNum != None and m.channel == ctx.channel and checkNum > 10 and checkNum <= interactor.get_user_balance(ctx.author.id) and m.author == ctx.author
             msg = await self.bot.wait_for('message', check=check)
 
             # Calculating monster's stats and adding to DB
             totalStatDist = suffix_num(msg.content) / 4
             DIST_LOW = 0.75
             DIST_HIGH = 1.25
-            atk = random.randint(int(totalStatDist * DIST_LOW), int(totalStatDist * DIST_HIGH))
-            spd = random.randint(int(totalStatDist * DIST_LOW), int(totalStatDist * DIST_HIGH))
-            intl = random.randint(int(totalStatDist * DIST_LOW), int(totalStatDist * DIST_HIGH))
-            defe = random.randint(int(totalStatDist * DIST_LOW), int(totalStatDist * DIST_HIGH))
+
+            stats = ['atk', 'spd', 'intl', 'defe']
+            values = {}
+
+            for stat in stats:
+                values[stat] = random.randint(int(totalStatDist * DIST_LOW), int(totalStatDist * DIST_HIGH))
+
+            atk = values['atk']
+            spd = values['spd']
+            intl = values['intl']
+            defe = values['defe']
 
             await ctx.send(embed=discord.Embed(color=discord.Color.purple(), title=f"You placed {num_suffix(suffix_num(msg.content))} Tokens in the pot.", description="What will you name your monster? (50 character limit)"))
 

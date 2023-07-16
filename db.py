@@ -24,8 +24,8 @@ class DatabaseInteractor:
     def create_user(self, discord_id):
         cursor = self.db.cursor()
 
-        query = "INSERT INTO users (USER_ID, TOKENS, LEVEL, EXPERIENCE, WINS, LOSSES) VALUES (%s, %s, %s, %s, %s, %s)"
-        values = (discord_id, "1000", 1, 0, 0, 0)
+        query = "INSERT INTO users (USER_ID, TOKENS, EXPERIENCE, WINS, LOSSES) VALUES (%s, %s, %s, %s, %s)"
+        values = (discord_id, "1000", 0, 0, 0)
         cursor.execute(query, values)
 
         self.db.commit()
@@ -41,7 +41,40 @@ class DatabaseInteractor:
 
         self.db.commit()
         cursor.close()
+    
+    # Delete monster from DB
+    def delete_monster(self, monster_id):
+        cursor = self.db.cursor()
 
+        query = "DELETE FROM monster WHERE ID = %s"
+        values = (monster_id,)
+        cursor.execute(query, values)
+
+        self.db.commit()
+        cursor.close()
+
+    # Edit monster's stats in DB
+    def edit_monster(self, monster_id, attack, defense, speed, intelligence):
+        cursor = self.db.cursor()
+
+        query = "UPDATE monster SET ATTACK = %s, DEFENSE = %s, SPEED = %s, INTELLIGENCE = %s WHERE ID = %s"
+        values = (attack, defense, speed, intelligence, monster_id)
+        cursor.execute(query, values)
+
+        self.db.commit()
+        cursor.close()
+    
+    # Change user ID of monster to have a new owner
+    def change_monster_owner(self, monster_id, discord_id):
+        cursor = self.db.cursor()
+
+        query = "UPDATE monster SET USER_ID = %s where ID = %s"
+        values = (discord_id, monster_id)
+        cursor.execute(query, values)
+
+        self.db.commit()
+        cursor.close()
+        
     # Returns dictionary of user stats from DB
     def get_user(self, discord_id):
         cursor = self.db.cursor(dictionary=True)
@@ -51,12 +84,47 @@ class DatabaseInteractor:
         cursor.execute(query, values)
         
         user = cursor.fetchone()
-
+        
         cursor.close()
         
         # Append monsters to user later
         return user
     
+    # Add wins and losses to user by ID
+    def add_user_WL(self, discord_id, wins, losses):
+        cursor = self.db.cursor()
+        
+        query = "UPDATE users SET WINS = WINS + %s, LOSSES = LOSSES + %s WHERE USER_ID = %s"
+        values = (discord_id, wins, losses)
+        cursor.execute(query, values)
+
+        self.db.commit()
+        cursor.close()
+
+    # Edit XP of user
+    def edit_user_xp(self, discord_id, xp):
+        cursor = self.db.cursor()
+        
+        query = "UPDATE users SET EXPERIENCE = %s WHERE USER_ID = %s"
+        values = (discord_id, xp)
+        cursor.execute(query, values)
+
+        self.db.commit()
+        cursor.close()
+
+    # Returns user XP.
+    def get_user_xp(self, discord_id):
+        cursor = self.db.cursor()
+
+        query = "SELECT EXPERIENCE FROM users WHERE USER_ID = %s"
+        values = (discord_id,)
+        cursor.execute(query, values)
+
+        exp = cursor.fetchone()
+        cursor.close()
+
+        return int(exp[0])
+
     # Get user balance from Discord ID
     def get_user_balance(self, discord_id):
         cursor = self.db.cursor()

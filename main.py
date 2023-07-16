@@ -1,4 +1,6 @@
 import os
+import sys
+import traceback
 
 import discord
 from discord.ext import commands
@@ -26,16 +28,25 @@ async def setup_hook() -> None:
 
 @bot.event
 async def on_command_error(ctx, error):
-    if isinstance(error, commands.CommandOnCooldown):
-        await ctx.send("Command still on cooldown. Please try again in `{:.2f}s`".format(error.retry_after))
-    elif isinstance(error, commands.CommandNotFound):
-        await ctx.send("Command not found. Use `!!help` for a list of valid commands.")
-    elif isinstance(error, commands.MissingPermissions):
-        await ctx.send(f"You can't use that command.")
-    elif isinstance(error, commands.MissingRequiredArgument):
-        await ctx.send(f"Your command has missing arguments. Type `!!help` for a list of commands.")
-    else:
-        await ctx.send(f"something went wrong lmao")
+    error_titles = {
+        commands.CommandOnCooldown: "Command still on cooldown:",
+        commands.CommandNotFound: "Command not found:",
+        commands.MissingPermissions: "You can't use that command:",
+        commands.MissingRequiredArgument: "Your command has missing arguments:"
+    }
+    
+    error_messages = {
+        commands.CommandOnCooldown: "Please try again in `{:.2f}s`",
+        commands.CommandNotFound: "Type `!!help` for a list of commands.",
+        commands.MissingPermissions: "This is meant for Admins only.",
+        commands.MissingRequiredArgument: "Type `!!help` for a list of commands."
+    }
+
+    error_type = type(error)
+    error_title = error_titles.get(error_type)
+    error_message = error_messages.get(error_type)
+    embed=discord.Embed(title=error_title, color=0xe60505, description=error_message)
+    await ctx.send(embed=embed)
 
 bot.run(TOKEN)
 
