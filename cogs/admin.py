@@ -1,25 +1,36 @@
-import discord 
-from discord.ext import commands 
+import discord
+from discord.ext import commands
 import random
 
 import sys
 import os
+
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from db import DatabaseInteractor
 from cogs.nebbies import suffix_num, num_suffix
 
 interactor = DatabaseInteractor()
 
+
 class Admin(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
-    
+
     @commands.command(name="tokens")
     @commands.has_permissions(administrator=True)
-    async def modifyTokens(self, ctx, oper, user:discord.Member, token):
+    async def modifyTokens(self, ctx, oper, user: discord.Member, token):
         tokens = suffix_num(token)
-        if tokens == None or tokens == False or not isinstance(oper, str) or oper not in ("add", "subtract", "set") or tokens < 0 or user == None:
-            await ctx.send("Incorrect command usage. Correct usage: !!tokens `add/subtract/set` `user` `amount`")
+        if (
+            tokens == None
+            or tokens == False
+            or not isinstance(oper, str)
+            or oper not in ("add", "subtract", "set")
+            or tokens < 0
+            or user == None
+        ):
+            await ctx.send(
+                "Incorrect command usage. Correct usage: !!tokens `add/subtract/set` `user` `amount`"
+            )
         elif not interactor.does_user_exist(user.id):
             await ctx.send("User is not registered. Please register with !!setup.")
         else:
@@ -36,8 +47,6 @@ class Admin(commands.Cog):
             else:
                 interactor.subtract_tokens(user.id, tokens)
                 await ctx.send(f"Subtracted {num_suffix(tokens)} Tokens from {user}.")
-            
-
 
 
 async def setup(bot):
