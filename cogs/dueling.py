@@ -20,9 +20,9 @@ class duelButtons(discord.ui.View):
         *,
         timeout=180,
         user,
-        opponent,
-        userMonster,
-        opponentMonster,
+        op,
+        usMon,
+        opMon,
         duelType,
         duelColor,
     ):
@@ -32,10 +32,10 @@ class duelButtons(discord.ui.View):
         self.duelColor = duelColor
 
         self.user = user
-        self.opponent = opponent
+        self.op = op
 
-        self.userMonster = userMonster
-        self.opponentMonster = opponentMonster
+        self.usMon = usMon
+        self.opMon = opMon
 
         self.userChoice = None
         self.opponentChoice = None
@@ -50,7 +50,7 @@ class duelButtons(discord.ui.View):
         self.DECREASE_CONSTANT = 0.35
 
     async def interaction_check(self, interaction: discord.Interaction) -> bool:
-        if interaction.user not in (self.user, self.opponent):
+        if interaction.user not in (self.user, self.op):
             await interaction.response.send_message(
                 f"This is not your duel! You can duel someone using the `duel` command.",
                 ephemeral=True,
@@ -62,17 +62,17 @@ class duelButtons(discord.ui.View):
         if interaction.user.name == self.user.name:
             self.userChoice = move
             self.userBlacklist.append(move)
-        elif interaction.user.name == self.opponent.name:
+        elif interaction.user.name == self.op.name:
             self.opponentChoice = move
             self.opponentBlacklist.append(move)
         await interaction.response.edit_message(
             embed=selectionEmbed(
                 self.user.display_name,
-                self.opponent.display_name,
+                self.op.display_name,
                 self.userChoice,
                 self.opponentChoice,
                 self.round,
-                embedColor=self.duelColor,
+                shade=self.duelColor,
             ),
             view=self,
         )
@@ -84,22 +84,22 @@ class duelButtons(discord.ui.View):
         # handle outcome logic and stats decrease
         if outcome[0] == "user":
             self.userMulti[outcome[1]] += 1
-        elif outcome[0] == "opponent":
+        elif outcome[0] == "op":
             self.opponentMulti[outcome[1]] += 1
 
         await interaction.edit_original_response(
             embed=outcomeEmbed(
                 self.user.display_name,
-                self.opponent.display_name,
+                self.op.display_name,
                 self.userChoice,
                 self.opponentChoice,
                 self.round,
-                self.userMonster,
-                self.opponentMonster,
+                self.usMon,
+                self.opMon,
                 outcome=outcome,
                 userMult=self.userMulti,
                 oppMult=self.opponentMulti,
-                embedColor=self.duelColor,
+                shade=self.duelColor,
             ),
             view=self,
         )
@@ -116,94 +116,90 @@ class duelButtons(discord.ui.View):
             await interaction.edit_original_response(
                 embed=selectionEmbed(
                     self.user.display_name,
-                    self.opponent.display_name,
+                    self.op.display_name,
                     self.userChoice,
                     self.opponentChoice,
                     self.round,
-                    embedColor=self.duelColor,
+                    shade=self.duelColor,
                 ),
                 view=self,
             )
         else:
             origUserStats = {
-                "Attack": self.userMonster["Attack"],
-                "Defense": self.userMonster["Defense"],
-                "Intelligence": self.userMonster["Intelligence"],
-                "Speed": self.userMonster["Speed"],
+                "Attack": self.usMon["Attack"],
+                "Defense": self.usMon["Defense"],
+                "Intelligence": self.usMon["Intelligence"],
+                "Speed": self.usMon["Speed"],
             }
             origOppStats = {
-                "Attack": self.opponentMonster["Attack"],
-                "Defense": self.opponentMonster["Defense"],
-                "Intelligence": self.opponentMonster["Intelligence"],
-                "Speed": self.opponentMonster["Speed"],
+                "Attack": self.opMon["Attack"],
+                "Defense": self.opMon["Defense"],
+                "Intelligence": self.opMon["Intelligence"],
+                "Speed": self.opMon["Speed"],
             }
 
             for stat, decrease in self.userMulti.items():
-                self.userMonster[stat.capitalize()] *= 1 - (
-                    self.DECREASE_CONSTANT * decrease
-                )
+                self.usMon[stat.capitalize()] *= 1 - (self.DECREASE_CONSTANT * decrease)
             for stat, decrease in self.opponentMulti.items():
-                self.opponentMonster[stat.capitalize()] *= 1 - (
-                    self.DECREASE_CONSTANT * decrease
-                )
+                self.opMon[stat.capitalize()] *= 1 - (self.DECREASE_CONSTANT * decrease)
 
-            totalUser = (
-                self.userMonster["Attack"]
-                + self.userMonster["Defense"]
-                + self.userMonster["Intelligence"]
-                + self.userMonster["Speed"]
+            sumUser = (
+                self.usMon["Attack"]
+                + self.usMon["Defense"]
+                + self.usMon["Intelligence"]
+                + self.usMon["Speed"]
             )
-            totalOpp = (
-                self.opponentMonster["Attack"]
-                + self.opponentMonster["Defense"]
-                + self.opponentMonster["Intelligence"]
-                + self.opponentMonster["Speed"]
+            sumOp = (
+                self.opMon["Attack"]
+                + self.opMon["Defense"]
+                + self.opMon["Intelligence"]
+                + self.opMon["Speed"]
             )
 
-            userChance = float(totalUser / (totalUser + totalOpp))
+            userChance = float(sumUser / (sumUser + sumOp))
 
             winner = random.random()
 
             if winner < userChance:
                 winner = "user"
             else:
-                winner = "opponent"
+                winner = "op"
 
             await interaction.edit_original_response(
                 embed=finalEmbed(
                     user=self.user.display_name,
-                    opponent=self.opponent.display_name,
-                    userMonster=self.userMonster,
-                    opponentMonster=self.opponentMonster,
+                    op=self.op.display_name,
+                    usMon=self.usMon,
+                    opMon=self.opMon,
                     userMult=self.userMulti,
                     oppMult=self.opponentMulti,
-                    totalUser=totalUser,
-                    totalOpp=totalOpp,
+                    sumUser=sumUser,
+                    sumOp=sumOp,
                     userChance=userChance,
-                    embedColor=self.duelColor,
+                    shade=self.duelColor,
                 )
             )
             time.sleep(3)
             await interaction.edit_original_response(
                 embed=resultEmbed(
                     user=self.user.display_name,
-                    opponent=self.opponent.display_name,
-                    userMonster=self.userMonster,
-                    opponentMonster=self.opponentMonster,
+                    op=self.op.display_name,
+                    usMon=self.usMon,
+                    opMon=self.opMon,
                     duelType=self.duelType,
                     userChance=userChance,
                     winner=winner,
-                    embedColor=self.duelColor,
+                    shade=self.duelColor,
                 )
             )
 
             duelOutcome(
                 winner,
                 self.duelType,
-                self.userMonster["ID"],
-                self.opponentMonster["ID"],
+                self.usMon["ID"],
+                self.opMon["ID"],
                 self.user.id,
-                self.opponent.id,
+                self.op.id,
                 origUserStats,
                 origOppStats,
             )
@@ -247,25 +243,25 @@ class offerButtons(discord.ui.View):
     def __init__(
         self,
         ctx: commands.Context,
-        opponent: discord.Member,
+        op: discord.Member,
         offer,
-        embedColor,
-        userMonster,
-        opponentMonster,
+        shade,
+        usMon,
+        opMon,
     ):
         super().__init__(timeout=300)
         self.ctx = ctx
         self.response = None
-        self.opponent = opponent
+        self.op = op
         self.offer = offer
-        self.embedColor = embedColor
-        self.userMonster = userMonster
-        self.opponentMonster = opponentMonster
+        self.shade = shade
+        self.usMon = usMon
+        self.opMon = opMon
 
     async def interaction_check(self, interaction: discord.Interaction) -> bool:
-        if interaction.user != self.opponent:
+        if interaction.user != self.op:
             await interaction.response.send_message(
-                f"Only {self.opponent.display_name} can respond to the offer.",
+                f"Only {self.op.display_name} can respond to the offer.",
                 ephemeral=True,
             )
             return False
@@ -286,7 +282,7 @@ class offerButtons(discord.ui.View):
         if buttonResponse == True:
             Embed = discord.Embed(
                 title=f"{self.ctx.author.display_name} has **Accepted**",
-                color=self.embedColor,
+                color=self.shade,
             )
             Embed.add_field(
                 name="The duel will begin shortly...", value="", inline=True
@@ -295,27 +291,27 @@ class offerButtons(discord.ui.View):
             time.sleep(2)
             embed = selectionEmbed(
                 self.ctx.author.display_name,
-                self.opponent.display_name,
+                self.op.display_name,
                 None,
                 None,
                 1,
-                self.embedColor,
+                self.shade,
             )
             await interaction.edit_original_response(
                 embed=embed,
                 view=duelButtons(
                     user=self.ctx.author,
-                    opponent=self.opponent,
-                    userMonster=self.userMonster,
-                    opponentMonster=self.opponentMonster,
+                    op=self.op,
+                    usMon=self.usMon,
+                    opMon=self.opMon,
                     duelType=self.offer,
-                    duelColor=self.embedColor,
+                    duelColor=self.shade,
                 ),
             )
         else:
             Embed = discord.Embed(
-                title=f"{self.opponent.display_name} has **Rejected**",
-                color=self.embedColor,
+                title=f"{self.op.display_name} has **Rejected**",
+                color=self.shade,
             )
             Embed.add_field(name="***Pussy.***", value="", inline=True)
             await interaction.edit_original_response(embed=Embed)
@@ -341,12 +337,12 @@ class Dueling(commands.Cog):
         self.bot = bot
 
     @commands.command()
-    async def duel(self, ctx, offer, opponent: discord.Member = None):
+    async def duel(self, ctx, offer, op: discord.Member = None):
         if not interactor.does_user_exist(ctx.author.id):
             await ctx.send("You are not signed up! Type `!!setup` to start playing.")
-        elif ctx.author.id == opponent.id:
+        elif ctx.author.id == op.id:
             await ctx.send("You cannot duel yourself.")
-        elif opponent is None or not interactor.does_user_exist(opponent.id):
+        elif op is None or not interactor.does_user_exist(op.id):
             await ctx.send(
                 "That user is not signed up. Please tell them to register with `!!setup`."
             )
@@ -358,53 +354,51 @@ class Dueling(commands.Cog):
             await ctx.send(
                 "You do not have a monster selected. Select a monster through `!!select (name)`."
             )
-        elif interactor.get_selected_monster(opponent.id) == "None":
+        elif interactor.get_selected_monster(op.id) == "None":
             await ctx.send(
-                "Your opponent does not have a monster selected. They need to select a monster through `!!select (name)`."
+                "Your op does not have a monster selected. They need to select a monster through `!!select (name)`."
             )
             """ assign into database in order to save data (self only saves locally)
-        elif ctx.author.id in self.inDuel or opponent.id in self.inDuel:
+        elif ctx.author.id in self.inDuel or op.id in self.inDuel:
             await ctx.send(
-                "You or your opponent are already in a duel! Wait for the ongoing duel to finish."
+                "You or your op are already in a duel! Wait for the ongoing duel to finish."
             )
         """
         else:
-            userMonster = interactor.get_monster_info(
+            usMon = interactor.get_monster_info(
                 interactor.get_selected_monster(ctx.author.id)
             )
-            opponentMonster = interactor.get_monster_info(
-                interactor.get_selected_monster(opponent.id)
-            )
+            opMon = interactor.get_monster_info(interactor.get_selected_monster(op.id))
             if offer == "kill":
-                embedColor = 0x9A0404
+                shade = 0x9A0404
             elif offer == "steal":
-                embedColor = 0xF9B90B
+                shade = 0xF9B90B
             else:
-                embedColor = 0x069D1F
+                shade = 0x069D1F
 
             challenge = discord.Embed(
                 title=f"{ctx.author.display_name} has challenged you to a **{offer}** duel!",
                 description="Will you accept? Reply with `duel accept` or `duel deny`",
-                color=embedColor,
+                color=shade,
             )
             challenge.add_field(
                 name=f"{ctx.author.display_name}'s Nebby:",
-                value=f"{get_monster_body(userMonster['Head'], userMonster['Body'])}\n**Name:** {userMonster['Name']}\n**Total Power:** {num_suffix(userMonster['Attack'] + userMonster['Defense'] + userMonster['Intelligence'] + userMonster['Speed'])}\n**Attack:** {userMonster['Attack']}\n**Defense:** {userMonster['Defense']}\n**Intelligence:** {userMonster['Intelligence']}\n**Speed:** {userMonster['Speed']}",
+                value=f"{get_monster_body(usMon['Head'], usMon['Body'])}\n**Name:** {usMon['Name']}\n**Total Power:** {num_suffix(usMon['Attack'] + usMon['Defense'] + usMon['Intelligence'] + usMon['Speed'])}\n**Attack:** {usMon['Attack']}\n**Defense:** {usMon['Defense']}\n**Intelligence:** {usMon['Intelligence']}\n**Speed:** {usMon['Speed']}",
                 inline=True,
             )
             challenge.add_field(name="‎", value="‎", inline=True)
             challenge.add_field(
-                name=f"{opponent.display_name}'s Nebby:",
-                value=f"{get_monster_body(opponentMonster['Head'], opponentMonster['Body'])}\n**Name:** {opponentMonster['Name']}\n**Total Power:** {num_suffix(opponentMonster['Attack'] + opponentMonster['Defense'] + opponentMonster['Intelligence'] + opponentMonster['Speed'])}\n**Attack:** {opponentMonster['Attack']}\n**Defense:** {opponentMonster['Defense']}\n**Intelligence:** {opponentMonster['Intelligence']}\n**Speed:** {opponentMonster['Speed']}",
+                name=f"{op.display_name}'s Nebby:",
+                value=f"{get_monster_body(opMon['Head'], opMon['Body'])}\n**Name:** {opMon['Name']}\n**Total Power:** {num_suffix(opMon['Attack'] + opMon['Defense'] + opMon['Intelligence'] + opMon['Speed'])}\n**Attack:** {opMon['Attack']}\n**Defense:** {opMon['Defense']}\n**Intelligence:** {opMon['Intelligence']}\n**Speed:** {opMon['Speed']}",
                 inline=True,
             )
             view = offerButtons(
                 ctx=ctx,
-                opponent=opponent,
+                op=op,
                 offer=offer,
-                embedColor=embedColor,
-                userMonster=userMonster,
-                opponentMonster=opponentMonster,
+                shade=shade,
+                usMon=usMon,
+                opMon=opMon,
             )
             response = await ctx.send(embed=challenge, view=view)
             view.response = response
@@ -412,61 +406,51 @@ class Dueling(commands.Cog):
 
 
 # Embed to display pending user selection for first 3 rounds
-def selectionEmbed(
-    user: str, opponent: str, userC: str, opponentC: str, round: int, embedColor
-):
-    embed = discord.Embed(
-        title=f"{user} VS {opponent} - Round {round}/3", color=embedColor
-    )
+def selectionEmbed(user: str, op: str, userC: str, opponentC: str, round: int, shade):
+    embed = discord.Embed(title=f"{user} VS {op} - Round {round}/3", color=shade)
     if userC != None:
         embed.add_field(name=f"{user}", value=":white_check_mark: Selected")
     else:
         embed.add_field(name=f"{user}", value=":x: Not Selected")
     if opponentC != None:
-        embed.add_field(name=f"{opponent}", value=":white_check_mark: Selected")
+        embed.add_field(name=f"{op}", value=":white_check_mark: Selected")
     else:
-        embed.add_field(name=f"{opponent}", value=":x: Not Selected")
+        embed.add_field(name=f"{op}", value=":x: Not Selected")
     return embed
 
 
 # Embed to display outcome of each of the 3 rounds after selection
 def outcomeEmbed(
     user: str,
-    opponent: str,
+    op: str,
     userC: str,
     opponentC: str,
     round: int,
-    userMonster: dict,
-    opponentMonster: dict,
+    usMon: dict,
+    opMon: dict,
     outcome: tuple,
     userMult: dict,
     oppMult: dict,
-    embedColor,
+    shade,
 ):
-    totalUser = num_suffix(
-        userMonster["Attack"]
-        + userMonster["Defense"]
-        + userMonster["Intelligence"]
-        + userMonster["Speed"]
+    sumUser = num_suffix(
+        usMon["Attack"] + usMon["Defense"] + usMon["Intelligence"] + usMon["Speed"]
     )
-    totalOpp = num_suffix(
-        opponentMonster["Attack"]
-        + opponentMonster["Defense"]
-        + opponentMonster["Intelligence"]
-        + opponentMonster["Speed"]
+    sumOp = num_suffix(
+        opMon["Attack"] + opMon["Defense"] + opMon["Intelligence"] + opMon["Speed"]
     )
 
     userStatLabels = {
-        "attack": num_suffix(userMonster["Attack"]),
-        "defense": num_suffix(userMonster["Defense"]),
-        "intelligence": num_suffix(userMonster["Intelligence"]),
-        "speed": num_suffix(userMonster["Speed"]),
+        "attack": num_suffix(usMon["Attack"]),
+        "defense": num_suffix(usMon["Defense"]),
+        "intelligence": num_suffix(usMon["Intelligence"]),
+        "speed": num_suffix(usMon["Speed"]),
     }
     oppStatLabels = {
-        "attack": num_suffix(opponentMonster["Attack"]),
-        "defense": num_suffix(opponentMonster["Defense"]),
-        "intelligence": num_suffix(opponentMonster["Intelligence"]),
-        "speed": num_suffix(opponentMonster["Speed"]),
+        "attack": num_suffix(opMon["Attack"]),
+        "defense": num_suffix(opMon["Defense"]),
+        "intelligence": num_suffix(opMon["Intelligence"]),
+        "speed": num_suffix(opMon["Speed"]),
     }
 
     for stat, decrease in userMult.items():
@@ -474,13 +458,11 @@ def outcomeEmbed(
     for stat, decrease in oppMult.items():
         oppStatLabels[stat] += "🔻" * decrease
 
-    embed = discord.Embed(
-        title=f"{user} VS {opponent} - Round {round}/3", color=embedColor
-    )
+    embed = discord.Embed(title=f"{user} VS {op} - Round {round}/3", color=shade)
     embed.add_field(name=f"{user} chose:", value=f"{userC.capitalize()}", inline=True)
     embed.add_field(name="‎", value="‎", inline=True)
     embed.add_field(
-        name=f"‎‎{opponent} chose:", value=f"‎‎{opponentC.capitalize()}", inline=True
+        name=f"‎‎{op} chose:", value=f"‎‎{opponentC.capitalize()}", inline=True
     )
 
     embed.add_field(name="‎", value="‎", inline=True)
@@ -488,17 +470,17 @@ def outcomeEmbed(
     if outcome[0] == "user":
         embed.add_field(
             name="‎",
-            value=f"**{opponentMonster['Name']}** won the round with __{opponentC}__!\n\n**{userMonster['Name']}**'s __{userC}__ has been decreased.\n",
+            value=f"**{opMon['Name']}** won the round with __{opponentC}__!\n\n**{usMon['Name']}**'s __{userC}__ has been decreased.\n",
         )
-    elif outcome[0] == "opponent":
+    elif outcome[0] == "op":
         embed.add_field(
             name="‎",
-            value=f"**{userMonster['Name']}** won the round with __{userC}__!\n\n**{opponentMonster['Name']}**'s __{opponentC}__ has been decreased.\n",
+            value=f"**{usMon['Name']}** won the round with __{userC}__!\n\n**{opMon['Name']}**'s __{opponentC}__ has been decreased.\n",
         )
     elif outcome[0] == "none":
         embed.add_field(
             name="‎",
-            value=f"**{userMonster['Name']}** and **{opponentMonster['Name']}** chose __{userC}__ and __{opponentC}__,\n\nhaving no effect on each other.\n",
+            value=f"**{usMon['Name']}** and **{opMon['Name']}** chose __{userC}__ and __{opponentC}__,\n\nhaving no effect on each other.\n",
         )
     elif outcome[0] == "tie":
         embed.add_field(
@@ -509,14 +491,14 @@ def outcomeEmbed(
     embed.add_field(name="‎", value="‎", inline=True)
 
     embed.add_field(
-        name=f"{userMonster['Name']}",
-        value=f"{get_monster_body(userMonster['Head'], userMonster['Body'])}\n**Total Power:** {totalUser}\n**Attack:** {userStatLabels['attack']}\n**Defense:** {userStatLabels['defense']}\n**Intelligence:** {userStatLabels['intelligence']}\n**Speed:** {userStatLabels['speed']}",
+        name=f"{usMon['Name']}",
+        value=f"{get_monster_body(usMon['Head'], usMon['Body'])}\n**Total Power:** {sumUser}\n**Attack:** {userStatLabels['attack']}\n**Defense:** {userStatLabels['defense']}\n**Intelligence:** {userStatLabels['intelligence']}\n**Speed:** {userStatLabels['speed']}",
         inline=True,
     )
     embed.add_field(name="‎", value="‎", inline=True)
     embed.add_field(
-        name=f"{opponentMonster['Name']}",
-        value=f"{get_monster_body(opponentMonster['Head'], opponentMonster['Body'])}\n**Total Power:** {totalOpp}\n**Attack:** {oppStatLabels['attack']}\n**Defense:** {oppStatLabels['defense']}\n**Intelligence:** {oppStatLabels['intelligence']}\n**Speed:** {oppStatLabels['speed']}",
+        name=f"{opMon['Name']}",
+        value=f"{get_monster_body(opMon['Head'], opMon['Body'])}\n**Total Power:** {sumOp}\n**Attack:** {oppStatLabels['attack']}\n**Defense:** {oppStatLabels['defense']}\n**Intelligence:** {oppStatLabels['intelligence']}\n**Speed:** {oppStatLabels['speed']}",
         inline=True,
     )
 
@@ -529,22 +511,22 @@ def determineLoser(userC, opponentC):
         return ("tie", None)
     outcomes = {
         "attack": {
-            "intelligence": ("opponent", opponentC),
+            "intelligence": ("op", opponentC),
             "defense": ("user", userC),
             "speed": ("none", userC),
         },
         "defense": {
-            "attack": ("opponent", opponentC),
+            "attack": ("op", opponentC),
             "speed": ("user", userC),
             "intelligence": ("none", userC),
         },
         "speed": {
-            "intelligence": ("opponent", opponentC),
+            "intelligence": ("op", opponentC),
             "defense": ("user", userC),
             "attack": ("none", userC),
         },
         "intelligence": {
-            "speed": ("opponent", opponentC),
+            "speed": ("op", opponentC),
             "attack": ("user", userC),
             "defense": ("none", userC),
         },
@@ -559,30 +541,30 @@ def determineLoser(userC, opponentC):
 # Embed to display final round
 def finalEmbed(
     user: str,
-    opponent: str,
-    userMonster: dict,
-    opponentMonster: dict,
+    op: str,
+    usMon: dict,
+    opMon: dict,
     userMult: dict,
     oppMult: dict,
-    totalUser: int,
-    totalOpp: int,
+    sumUser: int,
+    sumOp: int,
     userChance: float,
-    embedColor,
+    shade,
 ):
-    totalUser = num_suffix(totalUser)
-    totalOpp = num_suffix(totalOpp)
+    sumUser = num_suffix(sumUser)
+    sumOp = num_suffix(sumOp)
 
     userStatLabels = {
-        "attack": num_suffix(userMonster["Attack"]),
-        "defense": num_suffix(userMonster["Defense"]),
-        "intelligence": num_suffix(userMonster["Intelligence"]),
-        "speed": num_suffix(userMonster["Speed"]),
+        "attack": num_suffix(usMon["Attack"]),
+        "defense": num_suffix(usMon["Defense"]),
+        "intelligence": num_suffix(usMon["Intelligence"]),
+        "speed": num_suffix(usMon["Speed"]),
     }
     oppStatLabels = {
-        "attack": num_suffix(opponentMonster["Attack"]),
-        "defense": num_suffix(opponentMonster["Defense"]),
-        "intelligence": num_suffix(opponentMonster["Intelligence"]),
-        "speed": num_suffix(opponentMonster["Speed"]),
+        "attack": num_suffix(opMon["Attack"]),
+        "defense": num_suffix(opMon["Defense"]),
+        "intelligence": num_suffix(opMon["Intelligence"]),
+        "speed": num_suffix(opMon["Speed"]),
     }
 
     for stat, decrease in userMult.items():
@@ -596,15 +578,13 @@ def finalEmbed(
     for _ in range(abs(round((1 - userChance) * 24))):
         probBar += "🟥"
 
-    embed = discord.Embed(
-        title=f"{user} VS {opponent} - Final Showdown", color=embedColor
-    )
+    embed = discord.Embed(title=f"{user} VS {op} - Final Showdown", color=shade)
     embed.add_field(
         name=f"{user}:", value=f"{round(userChance * 100, 1)}% chance", inline=True
     )
     embed.add_field(name="‎", value="‎", inline=True)
     embed.add_field(
-        name=f"{opponent}:",
+        name=f"{op}:",
         value=f"{'{:.1f}'.format(100 - round(userChance * 100, 1))}% chance",
         inline=True,
     )
@@ -612,14 +592,14 @@ def finalEmbed(
     embed.add_field(name="‎", value=f"{probBar}", inline=False)
 
     embed.add_field(
-        name=f"{userMonster['Name']}",
-        value=f"{get_monster_body(userMonster['Head'], userMonster['Body'])}\n**Total Power:** {totalUser}\n**Attack:** {userStatLabels['attack']}\n**Defense:** {userStatLabels['defense']}\n**Intelligence:** {userStatLabels['intelligence']}\n**Speed:** {userStatLabels['speed']}",
+        name=f"{usMon['Name']}",
+        value=f"{get_monster_body(usMon['Head'], usMon['Body'])}\n**Total Power:** {sumUser}\n**Attack:** {userStatLabels['attack']}\n**Defense:** {userStatLabels['defense']}\n**Intelligence:** {userStatLabels['intelligence']}\n**Speed:** {userStatLabels['speed']}",
         inline=True,
     )
     embed.add_field(name="‎", value="‎", inline=True)
     embed.add_field(
-        name=f"{opponentMonster['Name']}",
-        value=f"{get_monster_body(opponentMonster['Head'], opponentMonster['Body'])}\n**Total Power:** {totalOpp}\n**Attack:** {oppStatLabels['attack']}\n**Defense:** {oppStatLabels['defense']}\n**Intelligence:** {oppStatLabels['intelligence']}\n**Speed:** {oppStatLabels['speed']}",
+        name=f"{opMon['Name']}",
+        value=f"{get_monster_body(opMon['Head'], opMon['Body'])}\n**Total Power:** {sumOp}\n**Attack:** {oppStatLabels['attack']}\n**Defense:** {oppStatLabels['defense']}\n**Intelligence:** {oppStatLabels['intelligence']}\n**Speed:** {oppStatLabels['speed']}",
         inline=True,
     )
 
@@ -631,116 +611,106 @@ def finalEmbed(
 # Embed to display outcome and winner of duel
 def resultEmbed(
     user: str,
-    opponent: str,
-    userMonster: dict,
-    opponentMonster: dict,
+    op: str,
+    usMon: dict,
+    opMon: dict,
     duelType: str,
     userChance: float,
     winner: str,
-    embedColor,
+    shade,
 ):
-    totalUser = num_suffix(
-        userMonster["Attack"]
-        + userMonster["Defense"]
-        + userMonster["Intelligence"]
-        + userMonster["Speed"]
+    sumUser = num_suffix(
+        usMon["Attack"] + usMon["Defense"] + usMon["Intelligence"] + usMon["Speed"]
     )
-    totalOpp = num_suffix(
-        opponentMonster["Attack"]
-        + opponentMonster["Defense"]
-        + opponentMonster["Intelligence"]
-        + opponentMonster["Speed"]
+    sumOp = num_suffix(
+        opMon["Attack"] + opMon["Defense"] + opMon["Intelligence"] + opMon["Speed"]
     )
 
     if winner == "user":
         embed = discord.Embed(
-            title=f"{user} won against {opponent} with a {round(userChance * 100, 1)}% chance!",
-            color=embedColor,
+            title=f"{user} won against {op} with a {round(userChance * 100, 1)}% chance!",
+            color=shade,
         )
     else:
         embed = discord.Embed(
-            title=f"{opponent} won against {user} with a {'{:.1f}'.format(100 - round(userChance * 100, 1))}% chance!",
-            color=embedColor,
+            title=f"{op} won against {user} with a {'{:.1f}'.format(100 - round(userChance * 100, 1))}% chance!",
+            color=shade,
         )
 
     if duelType == "kill":
         actionEmoji = "🔪"
         if winner == "user":
             embed.add_field(
-                name=f"{userMonster['Name']}",
-                value=f"{get_monster_body(userMonster['Head'], userMonster['Body'])}\n**Total Power:** {num_suffix(suffix_num(totalOpp) + suffix_num(totalUser))}  (+{totalOpp})\n**Attack:** {num_suffix(userMonster['Attack'] + opponentMonster['Attack'])} (+{opponentMonster['Attack']})\n**Defense:** {num_suffix(userMonster['Defense'] + opponentMonster['Defense'])} (+{opponentMonster['Defense']})\n**Intelligence:** {num_suffix(userMonster['Intelligence'] + opponentMonster['Intelligence'])} (+{opponentMonster['Intelligence']})\n**Speed:** {num_suffix(userMonster['Speed'] + opponentMonster['Speed'])} (+{opponentMonster['Speed']})",
+                name=f"{usMon['Name']}",
+                value=f"{get_monster_body(usMon['Head'], usMon['Body'])}\n**Total Power:** {num_suffix(suffix_num(sumOp) + suffix_num(sumUser))}  (+{sumOp})\n**Attack:** {num_suffix(usMon['Attack'] + opMon['Attack'])} (+{opMon['Attack']})\n**Defense:** {num_suffix(usMon['Defense'] + opMon['Defense'])} (+{opMon['Defense']})\n**Intelligence:** {num_suffix(usMon['Intelligence'] + opMon['Intelligence'])} (+{opMon['Intelligence']})\n**Speed:** {num_suffix(usMon['Speed'] + opMon['Speed'])} (+{opMon['Speed']})",
             )
             embed.add_field(name="‎", value=f"\n\n{actionEmoji}", inline=True)
-            embed.add_field(
-                name=f"{opponentMonster['Name']}\n(Killed)", value=f"\n:headstone:\n"
-            )
+            embed.add_field(name=f"{opMon['Name']}\n(Killed)", value=f"\n:headstone:\n")
         else:
-            embed.add_field(
-                name=f"{userMonster['Name']}\n(Killed)", value=f"\n:headstone:\n"
-            )
+            embed.add_field(name=f"{usMon['Name']}\n(Killed)", value=f"\n:headstone:\n")
             embed.add_field(name="‎", value=f"\n\n{actionEmoji}", inline=True)
             embed.add_field(
-                name=f"{opponentMonster['Name']}",
-                value=f"{get_monster_body(opponentMonster['Head'], opponentMonster['Body'])}\n**Total Power:** {num_suffix(suffix_num(totalOpp) + suffix_num(totalUser))} (+{totalUser})\n**Attack:** {num_suffix(userMonster['Attack'] + opponentMonster['Attack'])} (+{userMonster['Attack']})\n**Defense:** {num_suffix(userMonster['Defense'] + opponentMonster['Defense'])} (+{userMonster['Defense']})\n**Intelligence:** {num_suffix(userMonster['Intelligence'] + opponentMonster['Intelligence'])} (+{userMonster['Intelligence']})\n**Speed:** {num_suffix(userMonster['Speed'] + opponentMonster['Speed'])} (+{userMonster['Speed']})",
+                name=f"{opMon['Name']}",
+                value=f"{get_monster_body(opMon['Head'], opMon['Body'])}\n**Total Power:** {num_suffix(suffix_num(sumOp) + suffix_num(sumUser))} (+{sumUser})\n**Attack:** {num_suffix(usMon['Attack'] + opMon['Attack'])} (+{usMon['Attack']})\n**Defense:** {num_suffix(usMon['Defense'] + opMon['Defense'])} (+{usMon['Defense']})\n**Intelligence:** {num_suffix(usMon['Intelligence'] + opMon['Intelligence'])} (+{usMon['Intelligence']})\n**Speed:** {num_suffix(usMon['Speed'] + opMon['Speed'])} (+{usMon['Speed']})",
             )
     elif duelType == "absorb":
         actionEmoji = "💉"
         if winner == "user":
-            atkChange = int(opponentMonster["Attack"] * 0.5)
-            defChange = int(opponentMonster["Defense"] * 0.5)
-            spdChange = int(opponentMonster["Speed"] * 0.5)
-            intlChange = int(opponentMonster["Intelligence"] * 0.5)
-            totalChange = atkChange + defChange + spdChange + intlChange
+            atkDelta = int(opMon["Attack"] * 0.5)
+            defDelta = int(opMon["Defense"] * 0.5)
+            spdDelta = int(opMon["Speed"] * 0.5)
+            intDelta = int(opMon["Intelligence"] * 0.5)
+            sumDelta = atkDelta + defDelta + spdDelta + intDelta
 
             embed.add_field(
-                name=f"{userMonster['Name']}",
-                value=f"{get_monster_body(userMonster['Head'], userMonster['Body'])}\n**Total Power:** {num_suffix(suffix_num(totalUser) + totalChange)} (+{totalChange})\n**Attack:** {num_suffix(userMonster['Attack'] + atkChange)} (+{atkChange})\n**Defense:** {num_suffix(userMonster['Defense'] + defChange)} (+{defChange})\n**Intelligence:** {num_suffix(userMonster['Intelligence'] + intlChange)} (+{intlChange})\n**Speed:** {num_suffix(userMonster['Speed'] + spdChange)} (+{spdChange})",
+                name=f"{usMon['Name']}",
+                value=f"{get_monster_body(usMon['Head'], usMon['Body'])}\n**Total Power:** {num_suffix(suffix_num(sumUser) + sumDelta)} (+{sumDelta})\n**Attack:** {num_suffix(usMon['Attack'] + atkDelta)} (+{atkDelta})\n**Defense:** {num_suffix(usMon['Defense'] + defDelta)} (+{defDelta})\n**Intelligence:** {num_suffix(usMon['Intelligence'] + intDelta)} (+{intDelta})\n**Speed:** {num_suffix(usMon['Speed'] + spdDelta)} (+{spdDelta})",
             )
             embed.add_field(name="‎", value=f"\n\n{actionEmoji}", inline=True)
             embed.add_field(
-                name=f"{opponentMonster['Name']} (Absorbed)",
-                value=f"{get_monster_body(opponentMonster['Head'], opponentMonster['Body'])}\n**Total Power:** {num_suffix(abs(suffix_num(totalOpp) - totalChange))} (-{totalChange})\n**Attack:** {num_suffix(abs(opponentMonster['Attack'] - atkChange))} (-{atkChange})\n**Defense:** {num_suffix(abs(opponentMonster['Defense'] - defChange))} (-{defChange})\n**Intelligence:** {num_suffix(abs(opponentMonster['Intelligence'] - intlChange))} (-{intlChange})\n**Speed:** {num_suffix(abs(opponentMonster['Speed'] - spdChange))} (-{spdChange})",
+                name=f"{opMon['Name']} (Absorbed)",
+                value=f"{get_monster_body(opMon['Head'], opMon['Body'])}\n**Total Power:** {num_suffix(abs(suffix_num(sumOp) - sumDelta))} (-{sumDelta})\n**Attack:** {num_suffix(abs(opMon['Attack'] - atkDelta))} (-{atkDelta})\n**Defense:** {num_suffix(abs(opMon['Defense'] - defDelta))} (-{defDelta})\n**Intelligence:** {num_suffix(abs(opMon['Intelligence'] - intDelta))} (-{intDelta})\n**Speed:** {num_suffix(abs(opMon['Speed'] - spdDelta))} (-{spdDelta})",
             )
         else:
-            atkChange = int(userMonster["Attack"] * 0.5)
-            defChange = int(userMonster["Defense"] * 0.5)
-            spdChange = int(userMonster["Speed"] * 0.5)
-            intlChange = int(userMonster["Intelligence"] * 0.5)
-            totalChange = atkChange + defChange + spdChange + intlChange
+            atkDelta = int(usMon["Attack"] * 0.5)
+            defDelta = int(usMon["Defense"] * 0.5)
+            spdDelta = int(usMon["Speed"] * 0.5)
+            intDelta = int(usMon["Intelligence"] * 0.5)
+            sumDelta = atkDelta + defDelta + spdDelta + intDelta
 
             embed.add_field(
-                name=f"{userMonster['Name']} (Absorbed)",
-                value=f"{get_monster_body(userMonster['Head'], userMonster['Body'])}\n**Total Power:** {num_suffix(abs(suffix_num(totalUser) - totalChange))} (-{totalChange})\n**Attack:** {num_suffix(abs(userMonster['Attack'] - atkChange))} (-{atkChange})\n**Defense:** {num_suffix(abs(userMonster['Defense'] - defChange))} (-{defChange})\n**Intelligence:** {num_suffix(abs(userMonster['Intelligence'] - intlChange))} (-{intlChange})\n**Speed:** {num_suffix(abs(userMonster['Speed'] - spdChange))} (-{spdChange})",
+                name=f"{usMon['Name']} (Absorbed)",
+                value=f"{get_monster_body(usMon['Head'], usMon['Body'])}\n**Total Power:** {num_suffix(abs(suffix_num(sumUser) - sumDelta))} (-{sumDelta})\n**Attack:** {num_suffix(abs(usMon['Attack'] - atkDelta))} (-{atkDelta})\n**Defense:** {num_suffix(abs(usMon['Defense'] - defDelta))} (-{defDelta})\n**Intelligence:** {num_suffix(abs(usMon['Intelligence'] - intDelta))} (-{intDelta})\n**Speed:** {num_suffix(abs(usMon['Speed'] - spdDelta))} (-{spdDelta})",
             )
             embed.add_field(name="‎", value=f"\n\n{actionEmoji}", inline=True)
             embed.add_field(
-                name=f"{opponentMonster['Name']}",
-                value=f"{get_monster_body(opponentMonster['Head'], opponentMonster['Body'])}\n**Total Power:** {num_suffix(suffix_num(totalOpp) + totalChange)} (+{totalChange})\n**Attack:** {num_suffix(opponentMonster['Attack'] + atkChange)} (+{atkChange})\n**Defense:** {num_suffix(opponentMonster['Defense'] + defChange)} (+{defChange})\n**Intelligence:** {num_suffix(opponentMonster['Intelligence'] + intlChange)} (+{intlChange})\n**Speed:** {num_suffix(opponentMonster['Speed'] + spdChange)} (+{spdChange})",
+                name=f"{opMon['Name']}",
+                value=f"{get_monster_body(opMon['Head'], opMon['Body'])}\n**Total Power:** {num_suffix(suffix_num(sumOp) + sumDelta)} (+{sumDelta})\n**Attack:** {num_suffix(opMon['Attack'] + atkDelta)} (+{atkDelta})\n**Defense:** {num_suffix(opMon['Defense'] + defDelta)} (+{defDelta})\n**Intelligence:** {num_suffix(opMon['Intelligence'] + intDelta)} (+{intDelta})\n**Speed:** {num_suffix(opMon['Speed'] + spdDelta)} (+{spdDelta})",
             )
     elif duelType == "steal":
         actionEmoji = "🗑️"
         if winner == "user":
             embed.add_field(
-                name=f"{userMonster['Name']}",
-                value=f"{get_monster_body(userMonster['Head'], userMonster['Body'])}\n**Total Power:** {totalUser}\n**Attack:** {userMonster['Attack']}\n**Defense:** {userMonster['Defense']}\n**Intelligence:** {userMonster['Intelligence']}\n**Speed:** {userMonster['Speed']}",
+                name=f"{usMon['Name']}",
+                value=f"{get_monster_body(usMon['Head'], usMon['Body'])}\n**Total Power:** {sumUser}\n**Attack:** {usMon['Attack']}\n**Defense:** {usMon['Defense']}\n**Intelligence:** {usMon['Intelligence']}\n**Speed:** {usMon['Speed']}",
                 inline=True,
             )
             embed.add_field(name="‎", value=f"\n\n{actionEmoji}", inline=True)
             embed.add_field(
-                name=f"{opponentMonster['Name']} (Captured)",
-                value=f"\n\n🎁\n\n**Total Power:** {totalOpp}\n**Attack:** {opponentMonster['Attack']}\n**Defense:** {opponentMonster['Defense']}\n**Intelligence:** {opponentMonster['Intelligence']}\n**Speed:** {opponentMonster['Speed']}",
+                name=f"{opMon['Name']} (Captured)",
+                value=f"\n\n🎁\n\n**Total Power:** {sumOp}\n**Attack:** {opMon['Attack']}\n**Defense:** {opMon['Defense']}\n**Intelligence:** {opMon['Intelligence']}\n**Speed:** {opMon['Speed']}",
                 inline=True,
             )
         else:
             embed.add_field(
-                name=f"{userMonster['Name']} (Captured)",
-                value=f"\n\n🎁\n\n**Total Power:** {totalUser}\n**Attack:** {userMonster['Attack']}\n**Defense:** {userMonster['Defense']}\n**Intelligence:** {userMonster['Intelligence']}\n**Speed:** {userMonster['Speed']}",
+                name=f"{usMon['Name']} (Captured)",
+                value=f"\n\n🎁\n\n**Total Power:** {sumUser}\n**Attack:** {usMon['Attack']}\n**Defense:** {usMon['Defense']}\n**Intelligence:** {usMon['Intelligence']}\n**Speed:** {usMon['Speed']}",
                 inline=True,
             )
             embed.add_field(name="‎", value=f"\n\n{actionEmoji}", inline=True)
             embed.add_field(
-                name=f"{opponentMonster['Name']}",
-                value=f"{get_monster_body(opponentMonster['Head'], opponentMonster['Body'])}\n**Total Power:** {totalOpp}\n**Attack:** {opponentMonster['Attack']}\n**Defense:** {opponentMonster['Defense']}\n**Intelligence:** {opponentMonster['Intelligence']}\n**Speed:** {opponentMonster['Speed']}\n",
+                name=f"{opMon['Name']}",
+                value=f"{get_monster_body(opMon['Head'], opMon['Body'])}\n**Total Power:** {sumOp}\n**Attack:** {opMon['Attack']}\n**Defense:** {opMon['Defense']}\n**Intelligence:** {opMon['Intelligence']}\n**Speed:** {opMon['Speed']}\n",
                 inline=True,
             )
 
