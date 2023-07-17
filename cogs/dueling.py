@@ -314,7 +314,7 @@ class offerButtons(discord.ui.View):
             )
         else:
             Embed = discord.Embed(
-                title=f"{self.ctx.author.display_name} has **Rejected**",
+                title=f"{self.opponent.display_name} has **Rejected**",
                 color=self.embedColor,
             )
             Embed.add_field(name="***Pussy.***", value="", inline=True)
@@ -382,8 +382,6 @@ class Dueling(commands.Cog):
             else:
                 embedColor = 0x069D1F
 
-            MonsterEmbed = f"{get_monster_body(userMonster['Head'], userMonster['Body'])}\n**Name:** {userMonster['Name']}\n**Total Power:** {num_suffix(userMonster['Attack'] + userMonster['Defense'] + userMonster['Intelligence'] + userMonster['Speed'])}\n**Attack:** {userMonster['Attack']}\n**Defense:** {userMonster['Defense']}\n**Intelligence:** {userMonster['Intelligence']}\n**Speed:** {userMonster['Speed']}"
-
             challenge = discord.Embed(
                 title=f"{ctx.author.display_name} has challenged you to a **{offer}** duel!",
                 description="Will you accept? Reply with `duel accept` or `duel deny`",
@@ -391,13 +389,13 @@ class Dueling(commands.Cog):
             )
             challenge.add_field(
                 name=f"{ctx.author.display_name}'s Nebby:",
-                value=MonsterEmbed,
+                value=f"{get_monster_body(userMonster['Head'], userMonster['Body'])}\n**Name:** {userMonster['Name']}\n**Total Power:** {num_suffix(userMonster['Attack'] + userMonster['Defense'] + userMonster['Intelligence'] + userMonster['Speed'])}\n**Attack:** {userMonster['Attack']}\n**Defense:** {userMonster['Defense']}\n**Intelligence:** {userMonster['Intelligence']}\n**Speed:** {userMonster['Speed']}",
                 inline=True,
             )
             challenge.add_field(name="‎", value="‎", inline=True)
             challenge.add_field(
                 name=f"{opponent.display_name}'s Nebby:",
-                value=MonsterEmbed,
+                value=f"{get_monster_body(opponentMonster['Head'], opponentMonster['Body'])}\n**Name:** {opponentMonster['Name']}\n**Total Power:** {num_suffix(opponentMonster['Attack'] + opponentMonster['Defense'] + opponentMonster['Intelligence'] + opponentMonster['Speed'])}\n**Attack:** {opponentMonster['Attack']}\n**Defense:** {opponentMonster['Defense']}\n**Intelligence:** {opponentMonster['Intelligence']}\n**Speed:** {opponentMonster['Speed']}",
                 inline=True,
             )
             view = offerButtons(
