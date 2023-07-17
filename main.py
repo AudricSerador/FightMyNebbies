@@ -45,7 +45,7 @@ async def on_command_error(ctx, error):
     error_type = type(error)
     error_title = error_titles.get(error_type)
     error_message = error_messages.get(error_type)
-    embed=discord.Embed(title=error_title, color=0xe60505, description=error_message)
+    embed=discord.Embed(title=error_title, color=discord.Color.dark_red, description=error_message)
     await ctx.send(embed=embed)
 
 bot.run(TOKEN)
