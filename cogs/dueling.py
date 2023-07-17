@@ -287,7 +287,7 @@ class offerButtons(discord.ui.View):
             Embed.add_field(
                 name="The duel will begin shortly...", value="", inline=True
             )
-            await interaction.edit_original_response(embed=Embed)
+            await interaction.edit_original_response(embed=Embed, view=None)
             time.sleep(2)
             embed = selectionEmbed(
                 self.ctx.author.display_name,
@@ -314,7 +314,7 @@ class offerButtons(discord.ui.View):
                 color=self.shade,
             )
             Embed.add_field(name="***Pussy.***", value="", inline=True)
-            await interaction.edit_original_response(embed=Embed)
+            await interaction.edit_original_response(embed=Embed, view=None)
 
     @discord.ui.button(label="Accept Duel", style=discord.ButtonStyle.green)
     async def YesButton(
