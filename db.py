@@ -156,6 +156,18 @@ class DatabaseInteractor:
         cursor.close()
         return nebby
 
+    # Returns a list of monsters matching the same name and userID, along with their dictionary stats.
+    def get_monsters_by_name(self, discord_id, name):
+        cursor = self.db.cursor(dictionary=True, buffered=True)
+        
+        query = "SELECT * FROM monster WHERE USER_ID = %s and NAME = %s"
+        cursor.execute(query, (discord_id, name))
+        
+        monsters = cursor.fetchall()
+        
+        cursor.close()
+        return monsters
+
     # Returns a dictionary of stats of a specific monster, based on uuid
     def get_monster_info(self, uuid):
         cursor = self.db.cursor(dictionary=True)
@@ -219,3 +231,45 @@ class DatabaseInteractor:
 
         cursor.close()
         return monster[0]
+    
+    
+    # Create item
+    def create_item(self, item_id, discord_id, name, item_type):
+        cursor = self.db.cursor()
+        
+        query = "INSERT INTO items (ID, USER_ID, NAME, TYPE) VALUES (%s, %s, %s, %s)"
+        cursor.execute(query, (item_id, discord_id, name, item_type))
+        self.db.commit()
+        
+        cursor.close()
+    
+    # Delete item from item ID
+    def delete_item(self, item_id):
+        cursor = self.db.cursor()
+        
+        query = "DELETE FROM items WHERE ID = %s"
+        cursor.execute(query, (item_id,))
+        self.db.commit()
+        
+        cursor.close()
+    
+    # Get list of items by Discord user ID and (optionally) name
+    def get_items_by_user(self, discord_id, name=None):
+        cursor = self.db.cursor(dictionary=True)
+        
+        if name == None:
+            query = "SELECT * FROM items WHERE USER_ID = %s"
+            cursor.execute(query, (discord_id,))
+        elif name in ("artifact", "crate"):
+            query = "SELECT * FROM items WHERE USER_ID = %s AND TYPE = %s"
+            cursor.execute(query, (discord_id, name))
+        else:
+            query = "SELECT * FROM items WHERE USER_ID = %s AND NAME = %s"
+            cursor.execute(query, (discord_id, name))
+        items = cursor.fetchall()
+        
+        cursor.close()
+        return items
+    
+    
+        

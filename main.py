@@ -31,6 +31,7 @@ COGS = (
     "cogs.fun",
     "cogs.admin",
     "cogs.info",
+    "cogs.mining"
 )
 
 
@@ -59,12 +60,13 @@ async def on_command_error(ctx, error):
     }
 
     error_type = type(error)
-    error_title = error_titles.get(error_type)
-    error_message = error_messages.get(error_type)
+    error_title = error_titles.get(error_type, "Uh oh")
+    error_message = error_messages.get(error_type, error)
     embed = discord.Embed(
-        title=error_title, color=discord.Color.dark_red, description=error_message
+        title=error_title, color=discord.Color.dark_red(), description=error_message
     )
     await ctx.send(embed=embed)
+    raise error
 
 
 bot.run(TOKEN)

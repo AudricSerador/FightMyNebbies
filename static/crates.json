@@ -1,0 +1,32 @@
+{
+    "Common Crate": {
+        "description": "A common crate filled with a random artifact. Chances: 84% common, 15% uncommon, 1% rare.",
+        "chances": {
+            "rare": 0.01,
+            "uncommon": 0.05,
+            "common": 0.94
+        },
+        "cost": 1000,
+        "emoji": "<:common_crate:1130992328551694407>"
+    },
+    "Uncommon Crate": {
+        "description": "A uncommon crate filled with a random artifact. Chances: 35% common, 60% uncommon, 5% rare.",
+        "chances": {
+            "rare": 0.05,
+            "common": 0.35,
+            "uncommon": 0.60
+        },
+        "cost": 10000,
+        "emoji": "<:uncommon_crate:1130995959355150456>"
+    },
+    "Rare Crate": {
+        "description": "A rare crate filled with a random artifact. Chances: 64% uncommon, 15% rare, 1% epic.",
+        "chances": {
+            "epic": 0.01,
+            "rare": 0.15,
+            "uncommon": 0.64
+        },
+        "cost": 100000,
+        "emoji": "<:rare_crate:1130995999456895118>"
+    }
+}

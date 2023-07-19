@@ -1,0 +1,74 @@
+{
+    "common": {
+        "statMods": [
+            {
+                "name": "Expired Vitamins",
+                "description": "Looks good enough. Increases the overall stats of your monster by 1%.",
+                "modifiers": {
+                    "attack": 0.01,
+                    "defense": 0.01,
+                    "intelligence": 0.01,
+                    "speed": 0.01
+                },
+                "cost": 10000,
+                "emoji": "💉"
+            },
+            {
+                "name": "Worn Dagger",
+                "description": "A rusty, worn-out dagger. It's about to break. Increases your monster's attack by 2%.",
+                "modifiers": {
+                    "attack": 0.02
+                },
+                "cost": 1000,
+                "emoji": "🗡️"
+            },
+            {
+                "name": "Broken Shield",
+                "description": "A shield used countless times before in battle, now in shambles. Increases your monster's defense by 2%.",
+                "modifiers": {
+                    "defense": 0.02
+                },
+                "cost": 1000,
+                "emoji": "⛊"
+            },
+            {
+                "name": "Children's Book",
+                "description": "Green Eggs and Ham. Increases your monster's intelligence by 2%.",
+                "modifiers": {
+                    "intelligence": 0.02
+                },
+                "cost": 1000,
+                "emoji": "📖"
+            },
+            {
+                "name": "Old Running Shoes",
+                "description": "Ol' Reliable. Increases your monster's speed by 2%.",
+                "modifiers": {
+                    "speed": 0.02
+                },
+                "cost": 1000,
+                "emoji": "👟"
+            }
+        ],
+        "tokenMods": [
+            {
+                "name": "Broken Lucky Coin",
+                "description": "Increases the tokens you get from mining by 2%.",
+                "modifiers": {
+                    "tokens": 0.02
+                },
+                "cost": 10000,
+                "emoji": "🪙"
+            },
+            {
+                "name": "Wooden Pickaxe",
+                "description": "Increases chances of finding loot by 1%.",
+                "modifiers": {
+                    "luck": 0.01
+                },
+                "cost": 10000,
+                "emoji": "⛏️"
+            }
+        ]
+    }
+}

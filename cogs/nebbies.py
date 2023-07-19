@@ -1,8 +1,11 @@
 from typing import Optional
 import discord
 from discord.ext import commands
+from static.constants import HEAD, BODY
 import random
 import uuid
+import json
+from collections import defaultdict
 
 import sys
 import os
@@ -97,7 +100,23 @@ def monster_power_color(power):
     for range_, color in colors.items():
         if range_[0] < power < range_[1]:
             return color
-
+        
+# Tier colors for item rarities
+def rarity_color(rarity):
+    colors = {
+        "common": discord.Color.light_gray(),
+        "uncommon": discord.Color.green(),
+        "rare": discord.Color.blue(),
+        "epic": discord.Color.purple(),
+        "legendary": discord.Color.orange(),
+        "mythic": discord.Color.red(),
+        "godly": discord.Color.yellow(),
+        "cosmic": discord.Color.pink(),
+        "universal": discord.Color.from_rgb(255, 255, 255),
+        "voidlike": discord.Color.from_rgb(0, 0, 0),
+    }
+    
+    return colors[rarity]
 
 # Converts large numbers into their appropriate suffixes (k, M, B, etc.)
 def num_suffix(num: int):
@@ -180,229 +199,6 @@ class navButtons(discord.ui.View):
 class Nebbies(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
-        self.heads = [
-            ":grinning:",
-            ":smiley:",
-            ":smile:",
-            ":grin:",
-            ":laughing:",
-            ":star_struck:",
-            ":sweat_smile:",
-            ":joy:",
-            ":rofl:",
-            ":relieved:",
-            ":blush:",
-            ":innocent:",
-            ":slight_smile:",
-            ":upside_down:",
-            ":wink:",
-            ":relieved:",
-            ":heart_eyes:",
-            ":kissing_heart:",
-            ":kissing:",
-            ":kissing_smiling_eyes:",
-            ":kissing_closed_eyes:",
-            ":yum:",
-            ":zany_face:",
-            ":stuck_out_tongue_winking_eye:",
-            ":stuck_out_tongue_closed_eyes:",
-            ":stuck_out_tongue:",
-            ":money_mouth:",
-            ":hugging:",
-            ":nerd:",
-            ":sunglasses:",
-            ":clown:",
-            ":cowboy:",
-            ":smirk:",
-            ":unamused:",
-            ":disappointed:",
-            ":pensive:",
-            ":worried:",
-            ":confused:",
-            ":slight_frown:",
-            ":frowning2:",
-            ":persevere:",
-            ":confounded:",
-            ":tired_face:",
-            ":weary:",
-            ":triumph:",
-            ":rage:",
-            ":face_with_symbols_over_mouth:",
-            ":woman_gesturing_no:",
-            ":no_mouth:",
-            ":neutral_face:",
-            ":expressionless:",
-            ":hushed:",
-            ":frowning:",
-            ":anguished:",
-            ":open_mouth:",
-            ":dizzy_face:",
-            ":exploding_head:",
-            ":flushed:",
-            ":scream:",
-            ":fearful:",
-            ":baby:",
-            ":child:",
-            ":boy:",
-            ":girl:",
-            ":adult:",
-            ":man:",
-            ":woman:",
-            ":bearded_person:",
-            ":bearded_person:",
-            ":bearded_person:",
-            ":adult:",
-            ":man_red_haired:",
-            ":woman_red_haired:",
-            ":adult:",
-            ":man_curly_haired:",
-            ":woman_curly_haired:",
-            ":adult:",
-            ":man_white_haired:",
-            ":woman_white_haired:",
-            ":adult:",
-            ":man_bald:",
-            ":woman_bald:",
-            ":blond_haired_person:",
-            ":blond_haired_man:",
-            ":blond_haired_woman:",
-            ":older_adult:",
-            ":older_man:",
-            ":older_woman:",
-            ":smiling_imp:",
-            ":imp:",
-            ":skull:",
-            ":skull_crossbones:",
-            ":poop:",
-            ":clown:",
-            ":japanese_ogre:",
-            ":japanese_goblin:",
-            ":ghost:",
-            ":alien:",
-            ":space_invader:",
-            ":robot:",
-            ":smiley_cat:",
-            ":smile_cat:",
-            ":joy_cat:",
-            ":heart_eyes_cat:",
-            ":smirk_cat:",
-            ":kissing_cat:",
-            ":scream_cat:",
-            ":crying_cat_face:",
-            ":pouting_cat:",
-            ":monkey_face:",
-            ":gorilla:",
-            ":dog:",
-            ":wolf:",
-            ":fox:",
-            ":raccoon:",
-            ":cat:",
-            ":lion_face:",
-            ":tiger:",
-            ":cow:",
-            ":pig:",
-            ":boar:",
-            ":mouse:",
-            ":hamster:",
-            ":rabbit:",
-            ":bear:",
-            ":polar_bear:",
-            ":koala:",
-            ":panda_face:",
-            ":chicken:",
-            ":eagle:",
-            ":egg:",
-            ":frog:",
-            ":new_moon_with_face:",
-            ":full_moon_with_face:",
-            ":sun_with_face:",
-            ":jack_o_lantern:",
-        ]
-
-        self.bodies = [
-            ":koko:",
-            ":sa:",
-            ":u6708:",
-            ":u6709:",
-            ":u6307:",
-            ":ideograph_advantage:",
-            ":u5272:",
-            ":accept:",
-            ":u7981:",
-            ":u5408:",
-            ":u7a7a:",
-            ":u55b6:",
-            ":u6e80:",
-            ":u7121:",
-            ":u6708:",
-            ":u7533:",
-            ":red_circle:",
-            ":orange_circle:",
-            ":yellow_circle:",
-            ":green_circle:",
-            ":blue_circle:",
-            ":purple_circle:",
-            ":brown_circle:",
-            ":black_circle",
-            ":soccer:",
-            ":baseball:",
-            ":softball:",
-            ":basketball:",
-            ":volleyball:",
-            ":heart:",
-            ":orange_heart:",
-            ":yellow_heart:",
-            ":green_heart:",
-            ":blue_heart:",
-            ":purple_heart:",
-            ":brown_heart:",
-            ":black_heart:",
-            ":white_heart:",
-            ":heart_on_fire:",
-            ":mending_heart:",
-            ":new_moon:",
-            ":first_quarter_moon:",
-            ":waxing_gibbous_moon:",
-            ":waning_gibbous_moon:",
-            ":last_quarter_moon:",
-            ":lab_coat:",
-            ":safety_vest:",
-            ":necktie:",
-            ":shirt:",
-            ":dress:",
-            ":one_piece_swimsuit:",
-            ":bikini:",
-            ":womans_clothes:",
-            ":musical_keyboard:",
-            ":atom:",
-            ":infinity:",
-            ":peace:",
-            ":name_badge:",
-            ":o:",
-            ":eight_spoked_asterisk:",
-            ":radioactive:",
-            ":biohazard:",
-            ":8ball:",
-            ":cookie:",
-            ":rice_cracker:",
-            ":rice_ball:",
-            ":apple:",
-            ":green_apple:",
-            ":radio_button:",
-            ":white_square_button:",
-            ":peach:",
-            ":tomato:",
-            ":star2:",
-            ":chestnut:",
-            ":gem:",
-            ":red_square:",
-            ":orange_square:",
-            ":yellow_square:",
-            ":green_square:",
-            ":blue_square:",
-            ":purple_square:",
-            ":brown_square:",
-        ]
 
     # Process to create a monster
     @commands.command(pass_context=True)
@@ -464,8 +260,8 @@ class Nebbies(commands.Cog):
 
             name = await self.bot.wait_for("message", check=name_check)
 
-            randHead = random.choice(self.heads)
-            randBody = random.choice(self.bodies)
+            randHead = random.choice(HEAD)
+            randBody = random.choice(BODY)
             randId = str(uuid.uuid4())
 
             interactor.create_monster(
@@ -544,6 +340,7 @@ class Nebbies(commands.Cog):
             for monster in monsters:
                 if monster["Name"] == name:
                     found.append(monster)
+                    
             if not found:
                 await ctx.send(f'No monsters found with the name "{name}".')
             elif len(found) == 1:
@@ -589,7 +386,124 @@ class Nebbies(commands.Cog):
                     ctx.author.id, found[int(selection.content[7:]) - 1]["ID"]
                 )
                 await ctx.send(f"Monster ({name}) has been selected.")
-
-
+                
+    
+    # Artifact shop: buy, sell, and view items
+    @commands.command(pass_context=True)
+    async def shop(self, ctx, *, arg):
+        crates = json.load(open('static/crates.json'))
+        
+        if not interactor.does_user_exist(ctx.author.id):
+            await ctx.send("You have not registered. Please register with !!setup.")
+        if arg == None or arg == "view":
+            embed = discord.Embed(title="Artifact Shop", color=discord.Color.blue())
+            crateDesc = f"""
+                <:common_crate:1130992328551694407> **Common Crate** - 1k Tokens\n
+                <:uncommon_crate:1130995959355150456> **Uncommon Crate** - 10k Tokens\n
+                <:rare_crate:1130995999456895118> **Rare Crate** - 100k Tokens\n
+            """
+            embed.add_field(name="Loot Crates", value=crateDesc)
+            await ctx.send(embed=embed)
+        elif arg.startswith("buy "):
+            item = arg[4:].title()
+            if item not in crates:
+                await ctx.send(f"Item `{item}` not found in the shop. Did you spell it correctly?")
+            elif interactor.get_user_balance(ctx.author.id) < crates[item]["cost"]:
+                await ctx.send("You do not have enough tokens to buy this item.")
+            else:
+                interactor.subtract_tokens(ctx.author.id, crates[item]["cost"])
+                interactor.create_item(str(uuid.uuid4()), ctx.author.id, item, "crate")
+                await ctx.send(f"You bought 1x {crates[item]['emoji']} {item}.")
+        elif arg.startswith("sell "):
+            await ctx.send(f"Sell argument: {arg}")
+        else:
+            await ctx.send("Incorrect command usage. Correct command usage: `!!shop buy/sell (item)`")
+    
+    # View inventory
+    @commands.command(pass_context=True)
+    async def inventory(self, ctx):
+        if not interactor.does_user_exist(ctx.author.id):
+            await ctx.send("You have not registered. Please register with !!setup.")
+        else:
+            inv = interactor.get_items_by_user(ctx.author.id)
+            getCrateEmojis = json.load(open("static/crates.json"))
+            getArtifactEmojis = json.load(open("static/artifacts.json"))
+            invCount = defaultdict(int)
+            for item in inv:
+                invCount[f"{getCrateEmojis[item['Name']]['emoji'] if item['Type'] == 'crate' else ''} {item['Name']}"] += 1   
+            invList = "" if inv else "No items to show."
+            for item, count in invCount.items():
+                invList += f"`{count}x`‎ ‎ ‎ {item}\n"
+            
+            embed = discord.Embed(title=f"{ctx.author.display_name}'s Inventory ({len(inv)})", description=invList)
+            await ctx.send(embed=embed)
+    
+    # Open crates from inventory
+    @commands.command(pass_context=True)
+    async def open(self, ctx, *, crate):
+        if not interactor.does_user_exist(ctx.author.id):
+            await ctx.send("You have not registered. Please register with !!setup.")
+        else:
+            crates = json.load(open('static/crates.json'))
+            if crate.title() not in crates:
+                await ctx.send(f"No such crate called `{crate}`. Did you spell it correctly?")
+                return
+            
+            availableCrates = interactor.get_items_by_user(ctx.author.id, crate.title())
+            if not availableCrates:
+                await ctx.send(f"You do not own any {crate.title()}s!")
+                return
+            interactor.delete_item(availableCrates[0]['ID'])
+            
+            # Open the crate
+            artifacts = json.load(open('static/artifacts.json'))
+            result = random.random()
+            chances = crates[crate.title()]["chances"]
+            print((chances, result))
+            itemTier = ""
+            for tier, chance in chances.items():
+                if result < chance:
+                    itemTier = tier
+                    break
+            tierArtifacts = artifacts[itemTier]["statMods"] + artifacts[itemTier]["tokenMods"]
+            itemWon = random.choice(tierArtifacts)
+            
+            interactor.create_item(str(uuid.uuid4()), ctx.author.id, itemWon['name'], "artifact")
+            
+            embed = discord.Embed(
+                title=f"{crates[crate.title()]['emoji']} {ctx.author.id} Opened a {crate.title()} and got...",
+                color=rarity_color(itemTier)
+            )
+            embed.add_field(name=itemWon['name'], value=itemWon['description'])
+            await ctx.send(embed=embed)
+    
+    # Equip an item to a monster.
+    @commands.command(pass_context=True)
+    async def equip(self, ctx, *, monster):
+        def selectArtifact(artifacts):
+            artifactList = ""
+            for i, item in enumerate(artifacts):
+                artifactList += f"`{i+1}`‎ ‎ ‎ {item['name']}\n"
+            embed = discord.Embed(title="Which artifact do you want to equip?", description=artifactList)
+            
+        
+        if not interactor.does_user_exist(ctx.author.id):
+            await ctx.send("You have not registered. Please register with !!setup.")
+            return
+        artifacts = interactor.get_items_by_user(ctx.author.id, "artifact")
+        if not artifacts:
+            await ctx.send("You have no artifacts to equip! Buy artifacts in the shop using `!!shop view`")
+            return
+        monsters = interactor.get_monsters_by_name(ctx.author.id, monster)
+        if not monsters:
+            await ctx.send(f"No monsters found by the name `{monster}`")
+            return
+        elif len(monsters) == 1:
+            pass # Run method to ask user which artifact they want to equip on their monster
+        else:
+            pass # Confirm with user which monster they want to pick, then run method above
+        
+                
+            
 async def setup(bot):
     await bot.add_cog(Nebbies(bot))

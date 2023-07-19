@@ -4,10 +4,9 @@ import discord
 
 class MiningButtons(discord.ui.View):
     def __init__(self, ctx: commands.Context):
-        super().__init__(timeout=1)
+        super().__init__(timeout=30)
         self.ctx = ctx
         self.response = None
-        self.history = "__**History of calculations for this session.**__"
 
     async def interaction_check(self, interaction: discord.Interaction) -> bool:
         if interaction.user != self.ctx.author:
@@ -44,7 +43,7 @@ class MiningButtons(discord.ui.View):
     async def YesButton(
         self, interaction: discord.Interaction, button: discord.ui.Button
     ):
-        await interaction.response.defer()  # makes the button disabled until new response
+        await interaction.response.defer()  # makes the buttons disabled until new response
         # self.choice == true
         await self.new_edit(True, interaction)
 
@@ -52,9 +51,10 @@ class MiningButtons(discord.ui.View):
     async def NoButton(
         self, interaction: discord.Interaction, button: discord.ui.Button
     ):
-        await interaction.response.defer()  # makes the button disabled until new response
+        await interaction.response.defer()  # makes the buttons disabled until new response
         # self.choice ==true
         await self.new_edit(False, interaction)
+
 
 
 class Mining(commands.Cog):
