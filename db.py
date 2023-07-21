@@ -271,5 +271,34 @@ class DatabaseInteractor:
         cursor.close()
         return items
     
-    
+    # Assign item to monster to be equipped
+    def assign_item_to_monster(self, item_id, monster_id):
+        cursor = self.db.cursor()
         
+        query = "UPDATE items SET MONSTER_ID = %s WHERE ID = %s"
+        cursor.execute(query, (monster_id, item_id))
+        
+        self.db.commit()
+        cursor.close()    
+    
+    # Delete item
+    def delete_item(self, item_id):
+        cursor = self.db.cursor()
+        
+        query = "DELETE FROM items WHERE ID = %s"
+        cursor.execute(query, (item_id,))
+        
+        self.db.commit()
+        cursor.close()
+    
+    # Get items by monster
+    def get_items_by_monster(self, monster_id):
+        cursor = self.db.cursor(dictionary=True)
+        
+        query = "SELECT * FROM items WHERE MONSTER_ID = %s"
+        cursor.execute(query, (monster_id,))
+        items = cursor.fetchall()
+        
+        cursor.close()
+        return items
+    

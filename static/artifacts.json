@@ -3,7 +3,7 @@
         "statMods": [
             {
                 "name": "Expired Vitamins",
-                "description": "Looks good enough. Increases the overall stats of your monster by 1%.",
+                "description": "A bottle of vitamins long past their expiration date. Increases the overall stats of your monster by 1%.",
                 "modifiers": {
                     "attack": 0.01,
                     "defense": 0.01,
@@ -29,7 +29,7 @@
                     "defense": 0.02
                 },
                 "cost": 1000,
-                "emoji": "⛊"
+                "emoji": "🛡️"
             },
             {
                 "name": "Children's Book",
@@ -68,6 +68,60 @@
                 },
                 "cost": 10000,
                 "emoji": "⛏️"
+            }
+        ]
+    },
+    "uncommon": {
+        "statMods": [
+            {
+                "name": "Can O' Nutrients",
+                "description": "A can filled with healthy nutrients. Increases the overall stats of your monster by 2%.",
+                "modifiers": {
+                    "attack": 0.02,
+                    "defense": 0.02,
+                    "intelligence": 0.02,
+                    "speed": 0.02
+                },
+                "cost": 100000,
+                "emoji": "🥫"
+            }
+        ],
+        "tokenMods": [
+            {
+                "name": "Lucky Rabbit's Foot",
+                "description": "Increases the tokens you get from mining by 5%.",
+                "modifiers": {
+                    "tokens": 0.05
+                },
+                "cost": 100000,
+                "emoji": "🐇"
+            }
+        ]
+    },
+    "rare": {
+        "statMods": [
+            {
+                "name": "Growth Milk",
+                "description": "Grow your monster to be big and strong. Increases the overall stats of your monster by 4%.",
+                "modifiers": {
+                    "attack": 0.04,
+                    "defense": 0.04,
+                    "intelligence": 0.04,
+                    "speed": 0.04
+                },
+                "cost": 1000000,
+                "emoji": "🍼"
+            }
+        ],
+        "tokenMods": [
+            {
+                "name": "Mom's Credit Card",
+                "description": "Free money. Increases the tokens you get from mining by 8%.",
+                "modifiers": {
+                    "tokens": 0.08
+                },
+                "cost": 100000,
+                "emoji": "💳"
             }
         ]
     }

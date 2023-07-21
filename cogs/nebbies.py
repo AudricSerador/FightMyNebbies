@@ -23,6 +23,11 @@ def get_monster_body(head: str, body: str):
 # Takes in dictionary of monsters with monster info for each, turns into embed for !!monsters
 def monster_embed(monstersList: dict, index: int, icon_url: str):
     info = monstersList[index]
+    artiInfo = interactor.get_items_by_monster(info['ID'])
+    if len(artiInfo > 0):
+        artifactDesc = "\n".join(f"{restructuredArtifacts()[artifact['Name']]['emoji']} {artifact['Name']}" for artifact in artiInfo)
+    else:
+        artiDesc = "None"
     totalPower = info["Attack"] + info["Defense"] + info["Speed"] + info["Intelligence"]
 
     embed = discord.Embed(
@@ -52,6 +57,10 @@ def monster_embed(monstersList: dict, index: int, icon_url: str):
         inline=True,
     )
     embed.add_field(name="‎", value="‎", inline=True)
+    embed.add_field(
+        name="Equipped Artifacts",
+        value=artifactDesc
+    )
     embed.set_footer(
         text=f"Showing monster {index + 1} out of {len(monstersList)}\nid: {info['ID']}"
     )
@@ -161,6 +170,17 @@ def suffix_num(num):
                 return None
     return None
 
+# Get restrucuted data of artifacts.json without the categories for easier iteration
+def restructuredArtifacts():
+    data = json.load(open("static/artifacts.json", encoding="utf8"))
+    
+    item_dict = {}
+    for mods in data.values():
+        for mod_list in mods.values():
+            for mod in mod_list:
+                item_dict[mod['name']] = mod
+    return item_dict
+    
 
 class navButtons(discord.ui.View):
     def __init__(self, *, timeout=180, monsters, avatar):
@@ -391,7 +411,7 @@ class Nebbies(commands.Cog):
     # Artifact shop: buy, sell, and view items
     @commands.command(pass_context=True)
     async def shop(self, ctx, *, arg):
-        crates = json.load(open('static/crates.json'))
+        crates = json.load(open('static/crates.json', encoding="utf8"))
         
         if not interactor.does_user_exist(ctx.author.id):
             await ctx.send("You have not registered. Please register with !!setup.")
@@ -426,11 +446,12 @@ class Nebbies(commands.Cog):
             await ctx.send("You have not registered. Please register with !!setup.")
         else:
             inv = interactor.get_items_by_user(ctx.author.id)
-            getCrateEmojis = json.load(open("static/crates.json"))
-            getArtifactEmojis = json.load(open("static/artifacts.json"))
+            getCrateEmojis = json.load(open("static/crates.json", encoding="utf8"))
+            artifactData = restructuredArtifacts()
+            
             invCount = defaultdict(int)
             for item in inv:
-                invCount[f"{getCrateEmojis[item['Name']]['emoji'] if item['Type'] == 'crate' else ''} {item['Name']}"] += 1   
+                invCount[f"{getCrateEmojis[item['Name']]['emoji'] if item['Type'] == 'crate' else artifactData[item['Name']]['emoji']} {item['Name']}"] += 1   
             invList = "" if inv else "No items to show."
             for item, count in invCount.items():
                 invList += f"`{count}x`‎ ‎ ‎ {item}\n"
@@ -444,7 +465,7 @@ class Nebbies(commands.Cog):
         if not interactor.does_user_exist(ctx.author.id):
             await ctx.send("You have not registered. Please register with !!setup.")
         else:
-            crates = json.load(open('static/crates.json'))
+            crates = json.load(open('static/crates.json', encoding="utf8"))
             if crate.title() not in crates:
                 await ctx.send(f"No such crate called `{crate}`. Did you spell it correctly?")
                 return
@@ -456,10 +477,9 @@ class Nebbies(commands.Cog):
             interactor.delete_item(availableCrates[0]['ID'])
             
             # Open the crate
-            artifacts = json.load(open('static/artifacts.json'))
+            artifacts = json.load(open('static/artifacts.json', encoding="utf8"))
             result = random.random()
             chances = crates[crate.title()]["chances"]
-            print((chances, result))
             itemTier = ""
             for tier, chance in chances.items():
                 if result < chance:
@@ -471,22 +491,16 @@ class Nebbies(commands.Cog):
             interactor.create_item(str(uuid.uuid4()), ctx.author.id, itemWon['name'], "artifact")
             
             embed = discord.Embed(
-                title=f"{crates[crate.title()]['emoji']} {ctx.author.id} Opened a {crate.title()} and got...",
+                title=f"{crates[crate.title()]['emoji']} {ctx.author.display_name} Opened a {crate.title()} and got...",
                 color=rarity_color(itemTier)
             )
-            embed.add_field(name=itemWon['name'], value=itemWon['description'])
+            embed.add_field(name=f"{itemWon['emoji']} {itemWon['name']}", value=itemWon['description'])
             await ctx.send(embed=embed)
     
-    # Equip an item to a monster.
+    
+            
     @commands.command(pass_context=True)
     async def equip(self, ctx, *, monster):
-        def selectArtifact(artifacts):
-            artifactList = ""
-            for i, item in enumerate(artifacts):
-                artifactList += f"`{i+1}`‎ ‎ ‎ {item['name']}\n"
-            embed = discord.Embed(title="Which artifact do you want to equip?", description=artifactList)
-            
-        
         if not interactor.does_user_exist(ctx.author.id):
             await ctx.send("You have not registered. Please register with !!setup.")
             return
@@ -499,11 +513,65 @@ class Nebbies(commands.Cog):
             await ctx.send(f"No monsters found by the name `{monster}`")
             return
         elif len(monsters) == 1:
-            pass # Run method to ask user which artifact they want to equip on their monster
+            monsterItems = interactor.get_items_by_monster(monsters[0]['ID'])
+            if len(monsterItems) >= 3:
+                await ctx.send(f"Monster `{monsters[0]['Name']}` already has the max (3) number of artifacts equipped. Unequip an item or apply the item to a different monster.")
+                return
+            await self.selectArtifact(ctx, artifacts, monsters[0])
         else:
-            pass # Confirm with user which monster they want to pick, then run method above
-        
-                
+            # Confirm with user which monster they want to pick, then run method above
+            embed = list_embed(monsters, "")
+            embed.title = f"Multiple monsters found with the name '{monster}'."
+            embed.add_field(name='‎ ', value="Select the monster you want to equip an artifact with `select (number)`.")
+            await ctx.send(embed=embed)
             
+            def check(m):
+                return m.author == ctx.author and m.content.startswith("select ") and m.content[7:].isdigit() and int(m.content[7:]) in range(1, len(monsters)+2)
+            msg = await self.bot.wait_for('message', check=check)
+            
+            monsterItems = interactor.get_items_by_monster(monsters[int(msg.content[7:])-1]['ID'])
+            if len(monsterItems) >= 3:
+                await ctx.send(f"Monster `{monsters[int(msg.content[7:])-1]['Name']}` already has the max (3) number of artifacts equipped. Unequip an item or apply the item to a different monster.")
+                return
+            await self.selectArtifact(ctx, artifacts, monsters[int(msg.content[7:])-1])
+            
+    # Equip an item to a monster.
+    async def selectArtifact(self, ctx, artifacts, monster):
+        artifactList = ""
+        nameList = {}
+        for i, item in enumerate(artifacts):
+            if len(str(i + 1)) == 1:
+                    spaced = f"‎ ‎ {i+1}"
+            elif len(str(i + 1)) == 2:
+                spaced = f"‎ {i+1}"
+            else:
+                spaced = i + 1
+            if item['monster_ID'] == '':
+                artifactList += f"`{spaced}`‎ ‎ ‎ {item['Name']}\n"
+            else:
+                artifactList += f"`{spaced}`‎ ‎ ‎ {item['Name']} (Equipped by `{interactor.get_monster_info(monster['ID'])['Name']}`)\n"
+            nameList[item['ID']] = item['Name']
+                
+        monsterArtifacts = interactor.get_items_by_monster(monster['ID'])
+        if len(monsterArtifacts) > 1:
+            monsterItemDesc = "**Artifacts Equipped:**\n"
+            for i in range(len(monsterArtifacts)):
+                monsterItemDesc += f"{monsterArtifacts[i]['Name']}\n"
+        else:
+            monsterItemDesc = "**Artifacts Equipped:** None"
+        monsterEmbed = discord.Embed(title=f"Monster selected: {monster['Name']}", description=f"{get_monster_body(monster['Head'], monster['Body'])}\n{monsterItemDesc}")
+        embed = discord.Embed(title="Which artifact do you want to equip? respond with `equip (number)`.", description=artifactList)
+        await ctx.send(embeds=[monsterEmbed, embed])
+        
+        def check(m):
+            return m.author == ctx.author and m.content.startswith('equip ') and m.content[6:].isdigit() and int(m.content[6:]) in range(1, len(nameList)+2)
+        response = await self.bot.wait_for('message', check=check)
+        
+        selectedArtifactID = list(nameList.keys())[int(response.content[6:])-1]
+        artiName = list(nameList.values())[int(response.content[6:])-1]
+    
+        interactor.assign_item_to_monster(selectedArtifactID, monster['ID'])
+        await ctx.send(f"Artifact `{artiName}` has been equipped to your monster `{monster['Name']}`.")
+        
 async def setup(bot):
     await bot.add_cog(Nebbies(bot))

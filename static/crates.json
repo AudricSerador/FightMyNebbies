@@ -4,7 +4,7 @@
         "chances": {
             "rare": 0.01,
             "uncommon": 0.05,
-            "common": 0.94
+            "common": 1.00
         },
         "cost": 1000,
         "emoji": "<:common_crate:1130992328551694407>"
@@ -14,7 +14,7 @@
         "chances": {
             "rare": 0.05,
             "common": 0.35,
-            "uncommon": 0.60
+            "uncommon": 1.00
         },
         "cost": 10000,
         "emoji": "<:uncommon_crate:1130995959355150456>"
@@ -24,7 +24,7 @@
         "chances": {
             "epic": 0.01,
             "rare": 0.15,
-            "uncommon": 0.64
+            "uncommon": 1.00
         },
         "cost": 100000,
         "emoji": "<:rare_crate:1130995999456895118>"
