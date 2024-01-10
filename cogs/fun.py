@@ -1,12 +1,8 @@
-from typing import Optional, Union
-from discord.emoji import Emoji
 from discord.enums import ButtonStyle
 from discord.ext import commands
 import discord
 import random
 import time
-
-from discord.partial_emoji import PartialEmoji
 
 def getFormattedTime(seconds):
     mins = int(seconds // 60)
@@ -21,8 +17,6 @@ class TimerButton(discord.ui.View):
         self.start = start
         self.laps = []
     
-    
-        
     async def stopwatchEmbed(self, interaction):
         seconds = abs(self.start - time.time())
         lapsText = ""
@@ -72,7 +66,7 @@ class TimerButton(discord.ui.View):
 class Fun(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
-        self.phrases = ["kys", ":nerd:", "who asked"]
+        self.phrases = ["kys (keep yourself safe)", ":nerd:", "who asked"]
         self.eightball = [
             "It is certain",
             "It is decidedly so",
@@ -97,11 +91,6 @@ class Fun(commands.Cog):
             "stfu",
         ]
 
-    # Sus
-    @commands.command(pass_context=True)
-    async def sus(self, ctx):
-        await ctx.send("I like big balls")
-
     # Bruh
     @commands.command()
     async def bruh(self, ctx):
@@ -121,7 +110,8 @@ class Fun(commands.Cog):
             description=f"{random.choice(self.eightball)}",
         )
         await ctx.send(embed=embed)
-        
+    
+    # Stopwatch
     @commands.command(name="stopwatch")
     async def stopwatch(self, ctx):
         t1 = time.time()

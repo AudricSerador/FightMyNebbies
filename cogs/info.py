@@ -1,7 +1,6 @@
 from discord.ext import commands
 import discord
 
-
 class Info(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
@@ -28,6 +27,19 @@ class Info(commands.Cog):
             value="Grey\nGreen\nBlue\nPurple\nOrange\nRed\nYellow\nPink\nWhite\nBlack",
             inline=True,
         )
+        await ctx.send(embed=embed)
+    
+    # Override help
+    @commands.command(name='help', aliases=['h'])
+    async def _help(self, ctx):
+        embed = discord.Embed(title=":question: List of commands", description="New to FightMyNebbies? Start with `!!setup`", color=discord.Color.purple())
+
+        for cog in self.bot.cogs.values():
+            cog_commands = cog.get_commands()
+            if cog_commands:
+                commands_list = "\n".join(f"`{cmd.name}`" for cmd in cog_commands)
+                embed.add_field(name=cog.qualified_name, value=f"`{commands_list}`", inline=True)
+
         await ctx.send(embed=embed)
 
 

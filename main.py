@@ -38,6 +38,7 @@ COGS = (
 # Load cogs
 @bot.event
 async def setup_hook() -> None:
+    bot.remove_command('help')
     for i in COGS:
         await bot.load_extension(i)
     print("Were so back")
