@@ -2,3 +2,5 @@ discord
 mysql
 dotenv
 asyncio
+uuid
+engineering_notation

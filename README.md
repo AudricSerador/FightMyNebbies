@@ -54,6 +54,31 @@ This bot was built with Python using the Discord.py library, with MySQL as the l
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
+## Hosting The Bot
+
+### Prerequisites
+* Python (3.9 or later) - [Download](https://www.python.org/downloads/)
+* WampServer (For local hosting) - [Download](https://www.wampserver.com/en/download-wampserver-64bits/)
+* Newly created Discord bot - [How to setup a bot on Discord](https://discordpy.readthedocs.io/en/stable/discord.html)
+
+### Installation and Setup
+1. Clone the repo.
+   ```sh
+   git clone https://github.com/AudricSerador/FightMyNebbies
+   ```
+2. Install project dependencies
+    ```sh
+    pip install -r requirements.txt
+    ```
+3. Create a new file in the folder called `.env`. Set a variable `DISCORD_TOKEN` equal to your discord bot token.
+4. Run WampServer on your device. This should take a few seconds.
+5. In a new browser tab, navigate to `localhost/phpmyadmin`, you should see a login page to phpMyAdmin. The username is `root`, leave password empty. Log into the MySQL database.
+6. Click on the "New" button to create a new database. Name it `discordrpg`.
+![Image][tutorial-1]
+7. Once created, navigate to the "SQL" tab at the top, and paste the SQL query in `discordrpg.sql` inside the repository folder. Click "Go".
+![Image][tutorial-2]
+8. Run `main.py`. Enjoy the bot!
+![Image][tutorial-3]
 <!-- LICENSE -->
 ## License
 
@@ -74,3 +99,7 @@ Distributed under the MIT License. See `LICENSE.txt` for more information.
 [showcase-6]: static/showcase6.png
 [showcase-7]: static/showcase7.png
 [showcase-8]: static/showcase8.png
+
+[tutorial-1]: static/tutorial1.png
+[tutorial-2]: static/tutorial2.png
+[tutorial-3]: static/tutorial3.png
